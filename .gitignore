@@ -1,2 +1,7 @@
 # Ignore all directories
 VOCdevkit/
+zip/
+
+# Ignore all files 
+*.tar
+*.zip

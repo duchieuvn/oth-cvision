@@ -7,6 +7,8 @@ from PIL import Image
 import numpy as np
 import torch
 from model import UNetConcat
+from monai.networks.nets import UNet
+
 
 import time
 import json
@@ -69,7 +71,16 @@ def train():
     val_loader = DataLoader(val_data, batch_size=4, shuffle=False)
 
 
-    model = UNetConcat(out_channels=21).to(device)
+    # model = UNetConcat(out_channels=21).to(device)
+    model = UNet(
+                spatial_dims=2,          # Because VOC dataset is 2D
+                in_channels=3,           # VOC RGB images
+                out_channels=21,         # 21 VOC segmentation classes
+                channels=(64, 128, 256, 512, 1024),
+                strides=(2, 2, 2, 2),
+                num_res_units=2,
+                norm='batch'
+            ).to(device)
     criterion = nn.CrossEntropyLoss(ignore_index=255)
     optimizer = optim.Adam(model.parameters(), lr=5e-5)
 

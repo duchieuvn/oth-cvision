@@ -40,8 +40,8 @@ def train():
     result_path = Path(config['results_path'])
     result_path.mkdir(parents=True, exist_ok=True)
 
-    model_path = result_path / config['model_filename']
-    metrics_path = result_path / config['metrics_filename']
+    model_path = result_path / 'UNetConcat_best_model.pth'
+    metrics_path = result_path / 'UNetConcat_metrics.json'
 
     patience = train_cfg['early_stopping_patience']
     best_loss = float('inf')

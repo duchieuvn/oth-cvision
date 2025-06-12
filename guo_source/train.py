@@ -70,7 +70,7 @@ model = SwinUNETR(
 ).to(device)
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
-loss_fn = torch.nn.CrossEntropyLoss()
+loss_fn = torch.nn.CrossEntropyLoss(ignore_index=255)
 
 # ---------------------------
 # Training Loop
@@ -90,7 +90,7 @@ for epoch in range(epochs):
         optimizer.step()
         total_loss += loss.item()
     train_losses.append(total_loss / len(train_loader))
-
+    print("min:", masks.min().item(), "max:", masks.max().item())
     # Evaluation
     model.eval()
     with torch.no_grad():

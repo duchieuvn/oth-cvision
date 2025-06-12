@@ -48,7 +48,9 @@ transform = T.Compose([
 # Load and Subset Dataset
 # ---------------------------
 full_dataset = VOC2DSegmentation(root="data", image_set="train", transform=transform)
-subset_size = int(0.04 * len(full_dataset))
+subset_ratio = 0.2
+
+subset_size = int(subset_ratio * len(full_dataset))
 subset, _ = random_split(full_dataset, [subset_size, len(full_dataset) - subset_size])
 
 # Train/Val split
@@ -75,8 +77,12 @@ loss_fn = torch.nn.CrossEntropyLoss(ignore_index=255)
 # ---------------------------
 # Training Loop
 # ---------------------------
-epochs = 10
+epochs = 100
 train_losses, val_scores = [], []
+
+best_dice = 0.0
+patience = 10
+patience_counter = 0
 
 for epoch in range(epochs):
     model.train()
@@ -100,7 +106,21 @@ for epoch in range(epochs):
             preds = torch.argmax(model(imgs), dim=1)
             dice = dice_score(preds, masks, num_classes=21)
             dices.append(dice)
-        val_scores.append(sum(dices) / len(dices))
+        val_scores.append((sum(dices) / len(dices)).cpu().item())
+    
+    val_dice = (sum(dices) / len(dices)).cpu().item()
+    val_scores.append(val_dice)
+
+    if val_dice > best_dice:
+        best_dice = val_dice
+        patience_counter = 0
+        # Save best model
+        torch.save(model.state_dict(), "checkpoints/swinunetr_best.pth")
+    else:
+        patience_counter += 1
+        if patience_counter >= patience:
+            print(f"Early stopping triggered at epoch {epoch+1}")
+            break
 
     print(f"Epoch {epoch+1}/{epochs} - Loss: {train_losses[-1]:.4f}, Dice: {val_scores[-1]:.4f}")
 

@@ -1,95 +1,46 @@
 import torch.nn as nn
 import torch.optim as optim
-from torchvision.datasets import VOCSegmentation
-from torchvision import transforms
 from torch.utils.data import DataLoader
-from PIL import Image
 import numpy as np
 import torch
-from model import UNetConcat
-from monai.networks.nets import UNet
-
-
 import time
 import json
 import os
 from pathlib import Path
 from tqdm import tqdm
 
-
-input_size = (128, 128)
-
-def voc_transform(img, mask):
-    img = img.resize(input_size)
-    mask = mask.resize(input_size, resample=Image.NEAREST)
-    img = transforms.ToTensor()(img)
-    mask = torch.as_tensor(np.array(mask), dtype=torch.long)
-    return img, mask
-
-class VOCSegmentationDataset(torch.utils.data.Dataset):
-    def __init__(self, root, image_set='train', year='2012'):
-        self.dataset = VOCSegmentation(
-            root=root,
-            image_set=image_set,
-            year=year,
-            download=False
-        )
-
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, idx):
-        img, mask = self.dataset[idx]
-        return voc_transform(img, mask)
+import utils
+from models import UNetConcat, MonaiUNet
 
 
-def compute_iou(preds, masks, num_classes):  # nhớ sửa num_classes cho đúng model của bạn
-    ious = []
-    preds = torch.argmax(preds, dim=1)
-    for cls in range(num_classes):
-        pred_inds = (preds == cls)
-        target_inds = (masks == cls)
-        intersection = (pred_inds & target_inds).sum().item()
-        union = (pred_inds | target_inds).sum().item()
-        if union == 0:
-            continue
-        ious.append(intersection / union)
-    if len(ious) == 0:
-        return 0
-    return np.mean(ious)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+data_root = '../Hi-gMISnet_all_dataset/BUSI'
+train_data = utils.BUSIDataset(root=data_root, subset='train_folder')
+val_data = utils.BUSIDataset(root=data_root, subset='val_folder')
+test_data = utils.BUSIDataset(root=data_root, subset='test_folder')
+
+train_loader = DataLoader(train_data, batch_size=8, shuffle=True)
+val_loader = DataLoader(val_data, batch_size=4, shuffle=False)
+test_loader = DataLoader(test_data, batch_size=4, shuffle=False)
 
 def train():
-    results_path = Path('../results/train')
-    results_path.mkdir(parents=True, exist_ok=True)
-
+    num_classes = 2
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    train_data = VOCSegmentationDataset(root='../', image_set='train')
-    val_data = VOCSegmentationDataset(root='../', image_set='val')
-    train_loader = DataLoader(train_data, batch_size=8, shuffle=True)
-    val_loader = DataLoader(val_data, batch_size=4, shuffle=False)
+    model = UNetConcat(out_channels=num_classes).to(device)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
 
-    # model = UNetConcat(out_channels=21).to(device)
-    model = UNet(
-                spatial_dims=2,          # Because VOC dataset is 2D
-                in_channels=3,           # VOC RGB images
-                out_channels=21,         # 21 VOC segmentation classes
-                channels=(64, 128, 256, 512, 1024),
-                strides=(2, 2, 2, 2),
-                num_res_units=2,
-                norm='batch'
-            ).to(device)
-    criterion = nn.CrossEntropyLoss(ignore_index=255)
-    optimizer = optim.Adam(model.parameters(), lr=5e-5)
+    result_path = Path('../results/busi/train')
+    result_path.mkdir(parents=True, exist_ok=True)
 
-
-    model_path = results_path / 'UNetConcat_best_model.pth'
+    model_path = result_path / 'UNetConcat_best_model.pth'
 
 
 
-    patience = 5  # số epoch không cải thiện liên tiếp để dừng
+    patience = 5  # for early stopping
     best_loss = float('inf')
     counter = 0
 
@@ -118,7 +69,7 @@ def train():
             optimizer.step()
 
             total_train_loss += loss.item()
-            total_train_iou += compute_iou(outputs, masks, num_classes=21)
+            total_train_iou += utils.compute_iou(outputs, masks, num_classes=num_classes)
             train_batches += 1
 
             train_bar.set_postfix(loss=loss.item())
@@ -139,7 +90,7 @@ def train():
 
                 loss = criterion(outputs, masks)
                 total_val_loss += loss.item()
-                total_val_iou += compute_iou(outputs, masks, num_classes=21)
+                total_val_iou += utils.compute_iou(outputs, masks, num_classes=num_classes)
                 val_batches += 1
 
         # Calculate average validation metrics
@@ -154,6 +105,7 @@ def train():
         if avg_val_loss < best_loss:
             best_loss = avg_val_loss
             counter = 0
+
             torch.save(model.state_dict(), model_path)
             print("✅ Saved best model.")
         else:
@@ -173,7 +125,7 @@ def train():
             'epoch_time': epoch_time
         })
 
-    metrics_path = results_path / 'metrics.json'
+    metrics_path = result_path / 'metrics.json'
 
     # Save metrics to a JSON file for structured and human-readable storage
     with open(metrics_path, 'w') as f:
@@ -181,6 +133,7 @@ def train():
 
 
 if __name__ == "__main__":
+    
     train()
     print("✅ Training complete!")
     print("Model and metrics saved in './results/train/'")

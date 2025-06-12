@@ -1,6 +1,6 @@
 # Data
 ```
-curl -L -o ~/Downloads/medical-image-segmentation-datasets-hi-gmisnet.zip\
+curl -L -o medical-image-segmentation-datasets-hi-gmisnet.zip\
   https://www.kaggle.com/api/v1/datasets/download/tushartalukder/medical-image-segmentation-datasets-hi-gmisnet
 ```  
 ```

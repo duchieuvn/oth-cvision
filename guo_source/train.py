@@ -48,7 +48,7 @@ val_loader = DataLoader(val_set, batch_size=2)
 
 # Model
 model = SwinUNETR(
-    img_size=(128, 128, 1),
+    img_size=(128, 128),
     in_channels=3,
     out_channels=21,
     feature_size=24,
@@ -67,7 +67,7 @@ for epoch in range(epochs):
     total_loss = 0
     for imgs, masks in train_loader:
         imgs, masks = imgs.to(device), masks.to(device)
-        imgs = imgs.unsqueeze(2)  # fake depth dim for 3D model
+          # fake depth dim for 3D model
         outputs = model(imgs)
         loss = loss_fn(outputs, masks)
         optimizer.zero_grad()
@@ -82,7 +82,7 @@ for epoch in range(epochs):
         dices = []
         for imgs, masks in val_loader:
             imgs, masks = imgs.to(device), masks.to(device)
-            imgs = imgs.unsqueeze(2)
+            
             preds = torch.argmax(model(imgs), dim=1)
             dice = dice_score(preds, masks, num_classes=21)
             dices.append(dice)

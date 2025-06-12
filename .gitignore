@@ -2,6 +2,7 @@
 VOCdevkit/
 zip/
 data/
+source/__pycache__/
 
 # Ignore all files 
 *.tar

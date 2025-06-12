@@ -3,10 +3,10 @@ from torchvision import transforms
 import torch
 from pathlib import Path
 from PIL import Image
+import numpy as np
 
-input_size = (128, 128)
 
-def data_transform(img, mask):
+def data_transform(img, mask, model_input_size=(224, 224)):
     img = img.resize(input_size)
     mask = mask.resize(input_size, resample=Image.NEAREST)
     img = transforms.ToTensor()(img)
@@ -50,7 +50,7 @@ class BUSIDataset(torch.utils.data.Dataset):
         img = Image.open(self.images[idx]).convert('RGB')
         mask = Image.open(self.masks[idx]).convert('L')  # Grayscale mask
 
-        img, mask = self.transform(img, mask)
+        img, mask = self.transform(img, mask, model_input_size=(512, 512))
 
         # Convert to binary mask: 0 for background, 1 for lesion
         mask = (mask > 0).long()
@@ -71,3 +71,14 @@ def compute_iou(preds, masks, num_classes):  # nhớ sửa num_classes cho đún
     if len(ious) == 0:
         return 0
     return np.mean(ious)
+
+def dice_score(pred, target, num_classes):
+    dice = 0
+    for i in range(1, num_classes):  # ignore background
+        pred_i = (pred == i).float()
+        target_i = (target == i).float()
+        inter = (pred_i * target_i).sum()
+        union = pred_i.sum() + target_i.sum()
+        if union > 0:
+            dice += 2 * inter / union
+    return dice / (num_classes - 1)

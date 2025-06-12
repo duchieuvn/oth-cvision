@@ -167,7 +167,10 @@ def train():
         json.dump(metrics_records, f, indent=2)
 
 
-
+if __name__ == "__main__":
+    train()
+    print("✅ Training complete!")
+    print("Model and metrics saved in './results/train/'")
 
 
 

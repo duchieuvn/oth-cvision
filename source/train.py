@@ -11,6 +11,7 @@ from model import UNetConcat
 import time
 import json
 import os
+from pathlib import Path
 from tqdm import tqdm
 
 
@@ -57,8 +58,8 @@ def compute_iou(preds, masks, num_classes):  # nhớ sửa num_classes cho đún
 
 
 def train():
-    results_dir = './results/train'
-    os.makedirs(os.path.dirname(results_dir), exist_ok=True)
+    results_path = Path('../results/train')
+    results_path.mkdir(parents=True, exist_ok=True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -73,7 +74,7 @@ def train():
     optimizer = optim.Adam(model.parameters(), lr=5e-5)
 
 
-    model_path = './results/train/UNetConcat_best_model.pth'
+    model_path = results_path / 'UNetConcat_best_model.pth'
 
 
 
@@ -161,7 +162,7 @@ def train():
             'epoch_time': epoch_time
         })
 
-    metrics_path = './results/train/metrics.json'
+    metrics_path = results_path / 'metrics.json'
 
     # Save metrics to a JSON file for structured and human-readable storage
     with open(metrics_path, 'w') as f:

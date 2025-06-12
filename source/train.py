@@ -60,8 +60,8 @@ def train():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    train_data = VOCSegmentationDataset(root='./', image_set='train')
-    val_data = VOCSegmentationDataset(root='./', image_set='val')
+    train_data = VOCSegmentationDataset(root='../', image_set='train')
+    val_data = VOCSegmentationDataset(root='../', image_set='val')
     train_loader = DataLoader(train_data, batch_size=8, shuffle=True)
     val_loader = DataLoader(val_data, batch_size=4, shuffle=False)
 

@@ -9,7 +9,7 @@ from tqdm import tqdm
 import yaml
 
 import utils
-from models import UNetConcat, MonaiUNet
+from models import UNetConcat, MonaiUnet, BasicUNetPlusPlus
 
 
 # Load config.yaml

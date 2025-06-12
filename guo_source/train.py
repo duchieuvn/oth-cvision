@@ -81,8 +81,9 @@ epochs = 100
 train_losses, val_scores = [], []
 
 best_dice = 0.0
-patience = 10
+patience = 5
 patience_counter = 0
+
 
 for epoch in range(epochs):
     model.train()

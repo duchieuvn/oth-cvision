@@ -57,6 +57,8 @@ def compute_iou(preds, masks, num_classes):  # nhớ sửa num_classes cho đún
 
 
 def train():
+    results_dir = './results/train'
+    os.makedirs(os.path.dirname(results_dir), exist_ok=True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -160,7 +162,6 @@ def train():
         })
 
     metrics_path = './results/train/metrics.json'
-    os.makedirs(os.path.dirname(metrics_path), exist_ok=True)
 
     # Save metrics to a JSON file for structured and human-readable storage
     with open(metrics_path, 'w') as f:

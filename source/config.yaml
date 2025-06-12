@@ -6,6 +6,8 @@ test_folder: test_folder
 
 results_path: ../results/BUSI/train
 
+model_name: unetpp
+
 training:
   batch_size:
     train: 8

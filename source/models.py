@@ -2,7 +2,23 @@ import torch.nn as nn
 import torch
 from collections import OrderedDict
 from monai.networks.nets import UNet as MonaiUnet
-from monai.networks.nets import BasicUNetPlusPlus
+from monai.networks.nets import BasicUNetPlusPlus as UNetPP
+
+def get_model(name, out_channels):
+    if name == "unet":
+        return UNetConcat(out_channels=out_channels)
+    elif name == "monai_unet":
+        return MonaiUnet(out_channels=out_channels)
+    elif name == "unetpp":
+        return UNetPP(
+            spatial_dims=2,
+            in_channels=3,  # or 1 for grayscale
+            out_channels=out_channels,
+            features=(32, 64, 128, 256, 512, 32),
+            deep_supervision=False,
+        )
+    else:
+        raise ValueError(f"Unknown model: {name}")
 
 
 class UNetConcat(nn.Module):

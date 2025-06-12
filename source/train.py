@@ -9,7 +9,7 @@ from tqdm import tqdm
 import yaml
 
 import utils
-from models import UNetConcat, MonaiUnet, BasicUNetPlusPlus
+from models import get_model
 
 
 # Load config.yaml
@@ -33,7 +33,8 @@ test_loader = DataLoader(test_data, batch_size=train_cfg['batch_size']['eval'], 
 
 def train():
     num_classes = train_cfg['num_classes']
-    model = UNetConcat(out_channels=num_classes).to(device)
+    model = get_model(config['model_name'], out_channels=num_classes).to(device)
+
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=train_cfg['learning_rate'])
 
@@ -59,6 +60,9 @@ def train():
         for imgs, masks in train_bar:
             imgs, masks = imgs.to(device), masks.to(device)
             outputs = model(imgs)
+            if isinstance(outputs, list):
+                outputs = outputs[-1]
+
 
             loss = criterion(outputs, masks)
             optimizer.zero_grad()

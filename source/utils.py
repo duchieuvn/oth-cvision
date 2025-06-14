@@ -47,6 +47,7 @@ class BUSIDataset(torch.utils.data.Dataset):
         return len(self.images)
 
     def __getitem__(self, idx):
+        print(f"Loading index: {idx}")
         img = Image.open(self.images[idx]).convert('RGB')
         mask = Image.open(self.masks[idx]).convert('L')  # Grayscale mask
 

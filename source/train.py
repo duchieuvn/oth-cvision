@@ -30,6 +30,7 @@ train_loader = DataLoader(train_data, batch_size=train_cfg['batch_size']['train'
 val_loader = DataLoader(val_data, batch_size=train_cfg['batch_size']['eval'], shuffle=False)
 test_loader = DataLoader(test_data, batch_size=train_cfg['batch_size']['eval'], shuffle=False)
 
+print(f"batch size: {train_cfg['batch_size']['train']}")
 print(f"Training on {len(train_data)} samples")
 
 def train():

@@ -7,3 +7,4 @@ source/__pycache__/
 # Ignore all files 
 *.tar
 *.zip
+nb/test.ipynb

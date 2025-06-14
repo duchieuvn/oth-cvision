@@ -41,7 +41,7 @@ class BUSIDataset(torch.utils.data.Dataset):
 
         mask_path = Path(root) / subset / 'label'
         for filename in sorted(mask_path.glob("*.png")):
-            self.masks.append(mask_path)
+            self.masks.append(filename)
 
     def __len__(self):
         return len(self.images)

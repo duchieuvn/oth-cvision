@@ -7,8 +7,8 @@ import numpy as np
 
 
 def data_transform(img, mask, model_input_size=(224, 224)):
-    img = img.resize(input_size)
-    mask = mask.resize(input_size, resample=Image.NEAREST)
+    img = img.resize(model_input_size)
+    mask = mask.resize(model_input_size, resample=Image.NEAREST)
     img = transforms.ToTensor()(img)
     mask = torch.as_tensor(np.array(mask), dtype=torch.long)
     return img, mask
@@ -39,7 +39,7 @@ class BUSIDataset(torch.utils.data.Dataset):
         for filename in sorted(img_path.glob("*.png")):
             self.images.append(filename)
 
-        mask_path = Path(root) / subset / 'mask'
+        mask_path = Path(root) / subset / 'label'
         for filename in sorted(mask_path.glob("*.png")):
             self.masks.append(mask_path)
 

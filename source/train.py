@@ -119,8 +119,66 @@ def train():
     with open(metrics_path, 'w') as f:
         json.dump(metrics_records, f, indent=2)
 
+def evaluate_on_test(model_path, result_path):
+    num_classes = train_cfg['num_classes']
+    model = UNetConcat(out_channels=num_classes).to(device)
+    model.load_state_dict(torch.load(model_path))
+    model.eval()
+
+    criterion = nn.CrossEntropyLoss()
+
+    total_loss   = 0
+    total_iou    = 0
+    total_dice   = 0
+    total_px     = 0
+    total_correct = 0
+    cm = torch.zeros((num_classes, num_classes), dtype=torch.long)
+
+    with torch.no_grad():
+        test_bar = tqdm(test_loader, desc="Testing", leave=False)
+        for imgs, masks in test_bar:
+            imgs, masks = imgs.to(device), masks.to(device)
+
+            logits = model(imgs)
+            loss   = criterion(logits, masks)
+
+            preds  = torch.argmax(logits, dim=1)
+
+            # aggregate
+            total_loss += loss.item()
+            total_iou  += utils.compute_iou(logits, masks, num_classes)
+            total_dice += utils.dice_score(preds, masks, num_classes)
+            total_correct += (preds == masks).sum().item()
+            total_px      += masks.numel()
+            utils.update_cm(cm, preds, masks, num_classes)
+
+    n = len(test_loader)
+    metrics = {
+        "loss"       : total_loss / n,
+        "mean_iou"   : total_iou  / n,
+        "mean_dice"  : total_dice / n,
+        "pixel_acc"  : total_correct / total_px,
+        "conf_matrix": cm.tolist(),                      # JSON-friendly
+        "iou_per_cls": (cm.diagonal() / cm.sum(1).clamp(min=1)).tolist()
+    }
+
+    # save
+    with open(result_path / 'UNetConcat_test_metrics.json', 'w') as f:
+        json.dump(metrics, f, indent=2)
+
+    # pretty print
+    print("\n🔍  Test-set results")
+    for k, v in metrics.items():
+        if k not in {"conf_matrix", "iou_per_cls"}:
+            print(f"  {k:12s}: {v:0.4f}")
+    print("  IoU / class :", ["{:.3f}".format(x) for x in metrics['iou_per_cls']])
+
 
 if __name__ == "__main__":
-    train()
-    print("✅ Training complete!")
-    print(f"Model and metrics saved in '{config['results_path']}'")
+    #train()
+    #print("✅ Training complete!")
+    #print(f"Model and metrics saved in '{config['results_path']}'")
+    best_model_path = Path(config['results_path']) / 'UNetConcat_best_model.pth'
+    evaluate_on_test(best_model_path, Path(config['results_path']))
+
+    print("✅ All done!  Metrics stored in UNetConcat_test_metrics.json")

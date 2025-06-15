@@ -4,6 +4,15 @@ import torch
 from pathlib import Path
 from PIL import Image
 import numpy as np
+from sklearn.metrics import confusion_matrix    # pip install scikit-learn
+
+def update_cm(cm, preds, targets, num_classes):
+    """In-place update of a confusion-matrix tensor/ndarray."""
+    cm += confusion_matrix(
+        targets.view(-1).cpu().numpy(),
+        preds.view(-1).cpu().numpy(),
+        labels=list(range(num_classes))
+    )
 
 
 def data_transform(img, mask, model_input_size=(224, 224)):

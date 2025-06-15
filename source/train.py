@@ -163,7 +163,7 @@ def evaluate_on_test(model_path, result_path):
             total_dice += utils.dice_score(preds, masks, num_classes)
             total_correct += (preds == masks).sum().item()
             total_px      += masks.numel()
-            utils.update_cm(cm, preds, masks, num_classes)
+            cm = utils.update_cm(cm, preds, masks, num_classes)
 
     n = len(test_loader)
     metrics = {

@@ -13,6 +13,7 @@ def update_cm(cm, preds, targets, num_classes):
         preds.view(-1).cpu().numpy(),
         labels=list(range(num_classes))
     )
+    return cm
 
 
 def data_transform(img, mask, model_input_size=(224, 224)):

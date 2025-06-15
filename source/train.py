@@ -119,6 +119,19 @@ def train():
     with open(metrics_path, 'w') as f:
         json.dump(metrics_records, f, indent=2)
 
+
+def tensor_to_python(obj):
+    if isinstance(obj, torch.Tensor):
+        return obj.item() if obj.numel() == 1 else obj.tolist()
+    elif isinstance(obj, dict):
+        return {k: tensor_to_python(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [tensor_to_python(v) for v in obj]
+    else:
+        return obj
+
+
+
 def evaluate_on_test(model_path, result_path):
     num_classes = train_cfg['num_classes']
     model = UNetConcat(out_channels=num_classes).to(device)

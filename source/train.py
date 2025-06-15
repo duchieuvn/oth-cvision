@@ -120,13 +120,13 @@ def train():
         json.dump(metrics_records, f, indent=2)
 
 
-def tensor_to_python(obj):
+def tensor_to_obj(obj):
     if isinstance(obj, torch.Tensor):
         return obj.item() if obj.numel() == 1 else obj.tolist()
     elif isinstance(obj, dict):
-        return {k: tensor_to_python(v) for k, v in obj.items()}
+        return {k: tensor_to_obj(v) for k, v in obj.items()}
     elif isinstance(obj, list):
-        return [tensor_to_python(v) for v in obj]
+        return [tensor_to_obj(v) for v in obj]
     else:
         return obj
 
@@ -177,10 +177,10 @@ def evaluate_on_test(model_path, result_path):
 
     # save
     with open(result_path / 'UNetConcat_test_metrics.json', 'w') as f:
-        json.dump(metrics, f, indent=2)
+        json.dump(tensor_to_obj(metrics), f, indent=2)
 
     # pretty print
-    print("\n🔍  Test-set results")
+    print("\n  Test-set results")
     for k, v in metrics.items():
         if k not in {"conf_matrix", "iou_per_cls"}:
             print(f"  {k:12s}: {v:0.4f}")
@@ -189,9 +189,9 @@ def evaluate_on_test(model_path, result_path):
 
 if __name__ == "__main__":
     #train()
-    #print("✅ Training complete!")
+    #print(" Training complete!")
     #print(f"Model and metrics saved in '{config['results_path']}'")
     best_model_path = Path(config['results_path']) / 'UNetConcat_best_model.pth'
     evaluate_on_test(best_model_path, Path(config['results_path']))
 
-    print("✅ All done!  Metrics stored in UNetConcat_test_metrics.json")
+    print("All done!  Metrics stored in UNetConcat_test_metrics.json")

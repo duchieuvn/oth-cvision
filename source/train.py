@@ -9,7 +9,7 @@ from tqdm import tqdm
 import yaml
 
 import utils
-from models import UNetConcat, MonaiUnet, BasicUNetPlusPlus
+from models import UNetConcat, MonaiUnet, BasicUNetPlusPlusSum, BasicUNetPlusPlus
 
 
 # Load config.yaml
@@ -33,15 +33,26 @@ test_loader = DataLoader(test_data, batch_size=train_cfg['batch_size']['eval'], 
 
 def train():
     num_classes = train_cfg['num_classes']
-    model = UNetConcat(out_channels=num_classes).to(device)
+    #model = UNetConcat(out_channels=num_classes).to(device)
+    
+    model = BasicUNetPlusPlusSum(
+        spatial_dims=2,
+        in_channels=3,
+        out_channels=num_classes,
+        features=(32, 64, 128, 256, 512, 32),
+        deep_supervision=False,
+        act=("ReLU", {"inplace": True}),
+        norm=("batch", {"affine": True})
+    ).to(device)
+
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=train_cfg['learning_rate'])
 
     result_path = Path(config['results_path'])
     result_path.mkdir(parents=True, exist_ok=True)
 
-    model_path = result_path / 'UNetConcat_best_model.pth'
-    metrics_path = result_path / 'UNetConcat_metrics.json'
+    model_path = result_path / 'UNetPlusPlusSum_best_model.pth'
+    metrics_path = result_path / 'UNetPlusPlusSum_metrics.json'
 
     patience = train_cfg['early_stopping_patience']
     best_loss = float('inf')
@@ -58,7 +69,8 @@ def train():
         train_bar = tqdm(train_loader, desc=f"Epoch {epoch+1}", leave=False)
         for imgs, masks in train_bar:
             imgs, masks = imgs.to(device), masks.to(device)
-            outputs = model(imgs)
+            #outputs = model(imgs) unet
+            outputs = model(imgs)[0] # unetpp
 
             loss = criterion(outputs, masks)
             optimizer.zero_grad()
@@ -81,7 +93,8 @@ def train():
         with torch.no_grad():
             for imgs, masks in val_loader:
                 imgs, masks = imgs.to(device), masks.to(device)
-                outputs = model(imgs)
+                #outputs = model(imgs) unet
+                outputs = model(imgs)[0] # unetpp
 
                 loss = criterion(outputs, masks)
                 total_val_loss += loss.item()
@@ -134,7 +147,17 @@ def tensor_to_obj(obj):
 
 def evaluate_on_test(model_path, result_path):
     num_classes = train_cfg['num_classes']
-    model = UNetConcat(out_channels=num_classes).to(device)
+    #model = UNetConcat(out_channels=num_classes).to(device)
+    model = BasicUNetPlusPlusSum(
+        spatial_dims=2,
+        in_channels=3,
+        out_channels=num_classes,
+        features=(32, 64, 128, 256, 512, 32),
+        deep_supervision=False,
+        act=("ReLU", {"inplace": True}),
+        norm=("batch", {"affine": True})
+    ).to(device)
+
     model.load_state_dict(torch.load(model_path))
     model.eval()
 
@@ -176,7 +199,7 @@ def evaluate_on_test(model_path, result_path):
     }
 
     # save
-    with open(result_path / 'UNetConcat_test_metrics.json', 'w') as f:
+    with open(result_path / 'UNetPlusPlusSum_test_metrics.json', 'w') as f:
         json.dump(tensor_to_obj(metrics), f, indent=2)
 
     # pretty print
@@ -188,10 +211,10 @@ def evaluate_on_test(model_path, result_path):
 
 
 if __name__ == "__main__":
-    #train()
-    #print(" Training complete!")
-    #print(f"Model and metrics saved in '{config['results_path']}'")
-    best_model_path = Path(config['results_path']) / 'UNetConcat_best_model.pth'
+    train()
+    print(" Training complete!")
+    print(f"Model and metrics saved in '{config['results_path']}'")
+    best_model_path = Path(config['results_path']) / 'UNetPlusPlusSum_best_model.pth'
     evaluate_on_test(best_model_path, Path(config['results_path']))
 
-    print("All done!  Metrics stored in UNetConcat_test_metrics.json")
+    print("All done!  Metrics stored in UNetPlusPlusSum_test_metrics.json")

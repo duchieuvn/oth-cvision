@@ -3,7 +3,10 @@ import torch
 from collections import OrderedDict
 from monai.networks.nets import UNet as MonaiUnet
 from monai.networks.nets import BasicUNetPlusPlus
-
+from collections.abc import Sequence
+from monai.networks.layers.factories import Conv
+from monai.networks.nets.basic_unet import Down, TwoConv, UpSample
+from monai.utils import ensure_tuple_rep
 
 class UNetConcat(nn.Module):
 
@@ -100,3 +103,92 @@ class UNetConcat(nn.Module):
             )
         )
 
+
+
+
+class UpSum(nn.Module):
+    def __init__(self, spatial_dims, in_channels, skip_channels, out_channels,
+                 act, norm, bias, dropout, upsample_mode, halves=True):
+        super().__init__()
+        self.halves = halves
+        self.up = UpSample(spatial_dims, in_channels, out_channels if halves else in_channels,
+                           2, mode=upsample_mode)
+
+        self.align_skip = nn.Conv3d(skip_channels, out_channels, kernel_size=1) if spatial_dims == 3 else \
+                          nn.Conv2d(skip_channels, out_channels, kernel_size=1)
+
+        self.conv = TwoConv(spatial_dims, out_channels, out_channels, act, norm, bias, dropout)
+
+    def forward(self, x, skip):
+        x = self.up(x)
+        skip = self.align_skip(skip)
+        x = x + skip
+        return self.conv(x)
+
+class BasicUNetPlusPlusSum(nn.Module):
+    def __init__(self,
+                 spatial_dims: int = 3,
+                 in_channels: int = 1,
+                 out_channels: int = 2,
+                 features: Sequence[int] = (32, 32, 64, 128, 256, 32),
+                 deep_supervision: bool = False,
+                 act: str | tuple = ("LeakyReLU", {"negative_slope": 0.1, "inplace": True}),
+                 norm: str | tuple = ("instance", {"affine": True}),
+                 bias: bool = True,
+                 dropout: float | tuple = 0.0,
+                 upsample: str = "deconv"):
+        super().__init__()
+        self.deep_supervision = deep_supervision
+        fea = ensure_tuple_rep(features, 6)
+
+        self.conv_0_0 = TwoConv(spatial_dims, in_channels, fea[0], act, norm, bias, dropout)
+        self.conv_1_0 = Down(spatial_dims, fea[0], fea[1], act, norm, bias, dropout)
+        self.conv_2_0 = Down(spatial_dims, fea[1], fea[2], act, norm, bias, dropout)
+        self.conv_3_0 = Down(spatial_dims, fea[2], fea[3], act, norm, bias, dropout)
+        self.conv_4_0 = Down(spatial_dims, fea[3], fea[4], act, norm, bias, dropout)
+
+        self.up_0_1 = UpSum(spatial_dims, fea[1], fea[0], fea[0], act, norm, bias, dropout, upsample, halves=False)
+        self.up_1_1 = UpSum(spatial_dims, fea[2], fea[1], fea[1], act, norm, bias, dropout, upsample)
+        self.up_2_1 = UpSum(spatial_dims, fea[3], fea[2], fea[2], act, norm, bias, dropout, upsample)
+        self.up_3_1 = UpSum(spatial_dims, fea[4], fea[3], fea[3], act, norm, bias, dropout, upsample)
+
+        self.up_0_2 = UpSum(spatial_dims, fea[1], fea[0], fea[0], act, norm, bias, dropout, upsample, halves=False)
+        self.up_1_2 = UpSum(spatial_dims, fea[2], fea[1], fea[1], act, norm, bias, dropout, upsample)
+        self.up_2_2 = UpSum(spatial_dims, fea[3], fea[2], fea[2], act, norm, bias, dropout, upsample)
+
+        self.up_0_3 = UpSum(spatial_dims, fea[1], fea[0], fea[0], act, norm, bias, dropout, upsample, halves=False)
+        self.up_1_3 = UpSum(spatial_dims, fea[2], fea[1], fea[1], act, norm, bias, dropout, upsample)
+
+        self.up_0_4 = UpSum(spatial_dims, fea[1], fea[0], fea[5], act, norm, bias, dropout, upsample, halves=False)
+
+        self.final_conv_0_1 = Conv["conv", spatial_dims](fea[0], out_channels, kernel_size=1)
+        self.final_conv_0_2 = Conv["conv", spatial_dims](fea[0], out_channels, kernel_size=1)
+        self.final_conv_0_3 = Conv["conv", spatial_dims](fea[0], out_channels, kernel_size=1)
+        self.final_conv_0_4 = Conv["conv", spatial_dims](fea[5], out_channels, kernel_size=1)
+
+    def forward(self, x):
+        x_0_0 = self.conv_0_0(x)
+        x_1_0 = self.conv_1_0(x_0_0)
+        x_0_1 = self.up_0_1(x_1_0, x_0_0)
+
+        x_2_0 = self.conv_2_0(x_1_0)
+        x_1_1 = self.up_1_1(x_2_0, x_1_0)
+        x_0_2 = self.up_0_2(x_1_1, x_0_0 + x_0_1)
+
+        x_3_0 = self.conv_3_0(x_2_0)
+        x_2_1 = self.up_2_1(x_3_0, x_2_0)
+        x_1_2 = self.up_1_2(x_2_1, x_1_0 + x_1_1)
+        x_0_3 = self.up_0_3(x_1_2, x_0_0 + x_0_1 + x_0_2)
+
+        x_4_0 = self.conv_4_0(x_3_0)
+        x_3_1 = self.up_3_1(x_4_0, x_3_0)
+        x_2_2 = self.up_2_2(x_3_1, x_2_0 + x_2_1)
+        x_1_3 = self.up_1_3(x_2_2, x_1_0 + x_1_1 + x_1_2)
+        x_0_4 = self.up_0_4(x_1_3, x_0_0 + x_0_1 + x_0_2 + x_0_3)
+
+        out_0_1 = self.final_conv_0_1(x_0_1)
+        out_0_2 = self.final_conv_0_2(x_0_2)
+        out_0_3 = self.final_conv_0_3(x_0_3)
+        out_0_4 = self.final_conv_0_4(x_0_4)
+
+        return [out_0_1, out_0_2, out_0_3, out_0_4] if self.deep_supervision else [out_0_4]

@@ -111,19 +111,22 @@ class UpSum(nn.Module):
                  act, norm, bias, dropout, upsample_mode, halves=True):
         super().__init__()
         self.halves = halves
+
         self.up = UpSample(spatial_dims, in_channels, out_channels if halves else in_channels,
                            2, mode=upsample_mode)
 
-        self.align_skip = nn.Conv3d(skip_channels, out_channels, kernel_size=1) if spatial_dims == 3 else \
-                          nn.Conv2d(skip_channels, out_channels, kernel_size=1)
+        self.align_skip = nn.Conv2d(skip_channels, out_channels, kernel_size=1)
+        self.align_x = nn.Conv2d(in_channels if not halves else out_channels, out_channels, kernel_size=1)
 
         self.conv = TwoConv(spatial_dims, out_channels, out_channels, act, norm, bias, dropout)
 
     def forward(self, x, skip):
         x = self.up(x)
+        x = self.align_x(x)
         skip = self.align_skip(skip)
         x = x + skip
         return self.conv(x)
+
 
 class BasicUNetPlusPlusSum(nn.Module):
     def __init__(self,

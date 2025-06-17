@@ -175,7 +175,7 @@ def evaluate_on_test(model_path, result_path):
         for imgs, masks in test_bar:
             imgs, masks = imgs.to(device), masks.to(device)
 
-            logits = model(imgs)
+            logits = model(imgs)[0]
             loss   = criterion(logits, masks)
 
             preds  = torch.argmax(logits, dim=1)
@@ -211,9 +211,9 @@ def evaluate_on_test(model_path, result_path):
 
 
 if __name__ == "__main__":
-    train()
-    print(" Training complete!")
-    print(f"Model and metrics saved in '{config['results_path']}'")
+    #train()
+    #print(" Training complete!")
+    #print(f"Model and metrics saved in '{config['results_path']}'")
     best_model_path = Path(config['results_path']) / 'UNetPlusPlusSum_best_model.pth'
     evaluate_on_test(best_model_path, Path(config['results_path']))
 

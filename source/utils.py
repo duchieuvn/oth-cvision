@@ -6,17 +6,8 @@ from PIL import Image
 import numpy as np
 from sklearn.metrics import confusion_matrix    # pip install scikit-learn
 
-def update_cm(cm, preds, targets, num_classes):
-    """In-place update of a confusion-matrix tensor/ndarray."""
-    cm += confusion_matrix(
-        targets.view(-1).cpu().numpy(),
-        preds.view(-1).cpu().numpy(),
-        labels=list(range(num_classes))
-    )
-    return cm
 
-
-def data_transform(img, mask, model_input_size=(224, 224)):
+def binary_class_data_transform(img, mask, model_input_size=(224, 224)):
     img = img.resize(model_input_size)
     mask = mask.resize(model_input_size, resample=Image.NEAREST)
     img = transforms.ToTensor()(img)
@@ -37,13 +28,13 @@ class VOCSegmentationDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         img, mask = self.dataset[idx]
-        return data_transform(img, mask)
+        return self.data_transform(img, mask)
     
 class BUSIDataset(torch.utils.data.Dataset):
     def __init__(self, root, subset='train_folder'):
         self.images = []
         self.masks = []
-        self.transform = data_transform  
+        self.transform = binary_class_data_transform
 
         img_path = Path(root) / subset / 'img'
         for filename in sorted(img_path.glob("*.png")):
@@ -57,15 +48,16 @@ class BUSIDataset(torch.utils.data.Dataset):
         return len(self.images)
 
     def __getitem__(self, idx):
-        img = Image.open(self.images[idx]).convert('RGB')
-        mask = Image.open(self.masks[idx]).convert('L')  # Grayscale mask
-
-        img, mask = self.transform(img, mask, model_input_size=(512, 512))
-
+        img_path = self.images[idx]
+        mask_path = self.masks[idx]
+       
+        img = Image.open(img_path).convert('RGB')
+        mask = Image.open(mask_path).convert('L')  # Grayscale mask
+        img, mask = self.transform(img, mask)
+        
         # Convert to binary mask: 0 for background, 1 for lesion
         mask = (mask > 0).long()
-
-        return img, mask
+        return img, mask, img_path.stem  # Return image name for reference 
     
 def compute_iou(preds, masks, num_classes):  # nhớ sửa num_classes cho đúng model của bạn
     ious = []
@@ -92,3 +84,24 @@ def dice_score(pred, target, num_classes):
         if union > 0:
             dice += 2 * inter / union
     return dice / (num_classes - 1)
+
+def f1_score(pred, target, num_classes):
+    f1 = 0
+    for i in range(1, num_classes):  # ignore background
+        pred_i = (pred == i).float()
+        target_i = (target == i).float()
+        tp = (pred_i * target_i).sum()
+        fp = (pred_i * (1 - target_i)).sum()
+        fn = ((1 - pred_i) * target_i).sum()
+        if tp + fp + fn > 0:
+            f1 += 2 * tp / (2 * tp + fp + fn)
+    return f1 / (num_classes - 1)
+
+def update_cm(cm, preds, targets, num_classes):
+    """In-place update of a confusion-matrix tensor/ndarray."""
+    cm += confusion_matrix(
+        targets.view(-1).cpu().numpy(),
+        preds.view(-1).cpu().numpy(),
+        labels=list(range(num_classes))
+    )
+    return cm

@@ -24,11 +24,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # Load datasets
 train_data = utils.BUSIDataset(root=config['data_root'], subset=config['train_folder'])
 val_data = utils.BUSIDataset(root=config['data_root'], subset=config['val_folder'])
-test_data = utils.BUSIDataset(root=config['data_root'], subset=config['test_folder'])
 
 train_loader = DataLoader(train_data, batch_size=train_cfg['batch_size']['train'], shuffle=True)
 val_loader = DataLoader(val_data, batch_size=train_cfg['batch_size']['eval'], shuffle=False)
-test_loader = DataLoader(test_data, batch_size=train_cfg['batch_size']['eval'], shuffle=False)
 
 
 def train():
@@ -37,7 +35,7 @@ def train():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=train_cfg['learning_rate'])
 
-    result_path = Path(config['results_path'])
+    result_path = Path(train_cfg['results_path'])
     result_path.mkdir(parents=True, exist_ok=True)
 
     model_path = result_path / 'UNetConcat_best_model.pth'
@@ -56,7 +54,7 @@ def train():
         start_time = time.time()
 
         train_bar = tqdm(train_loader, desc=f"Epoch {epoch+1}", leave=False)
-        for imgs, masks in train_bar:
+        for imgs, masks, _ in train_bar:
             imgs, masks = imgs.to(device), masks.to(device)
             outputs = model(imgs)
 
@@ -120,78 +118,7 @@ def train():
         json.dump(metrics_records, f, indent=2)
 
 
-def tensor_to_obj(obj):
-    if isinstance(obj, torch.Tensor):
-        return obj.item() if obj.numel() == 1 else obj.tolist()
-    elif isinstance(obj, dict):
-        return {k: tensor_to_obj(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [tensor_to_obj(v) for v in obj]
-    else:
-        return obj
-
-
-
-def evaluate_on_test(model_path, result_path):
-    num_classes = train_cfg['num_classes']
-    model = UNetConcat(out_channels=num_classes).to(device)
-    model.load_state_dict(torch.load(model_path))
-    model.eval()
-
-    criterion = nn.CrossEntropyLoss()
-
-    total_loss   = 0
-    total_iou    = 0
-    total_dice   = 0
-    total_px     = 0
-    total_correct = 0
-    cm = torch.zeros((num_classes, num_classes), dtype=torch.long)
-
-    with torch.no_grad():
-        test_bar = tqdm(test_loader, desc="Testing", leave=False)
-        for imgs, masks in test_bar:
-            imgs, masks = imgs.to(device), masks.to(device)
-
-            logits = model(imgs)
-            loss   = criterion(logits, masks)
-
-            preds  = torch.argmax(logits, dim=1)
-
-            # aggregate
-            total_loss += loss.item()
-            total_iou  += utils.compute_iou(logits, masks, num_classes)
-            total_dice += utils.dice_score(preds, masks, num_classes)
-            total_correct += (preds == masks).sum().item()
-            total_px      += masks.numel()
-            cm = utils.update_cm(cm, preds, masks, num_classes)
-
-    n = len(test_loader)
-    metrics = {
-        "loss"       : total_loss / n,
-        "mean_iou"   : total_iou  / n,
-        "mean_dice"  : total_dice / n,
-        "pixel_acc"  : total_correct / total_px,
-        "conf_matrix": cm.tolist(),                      # JSON-friendly
-        "iou_per_cls": (cm.diagonal() / cm.sum(1).clamp(min=1)).tolist()
-    }
-
-    # save
-    with open(result_path / 'UNetConcat_test_metrics.json', 'w') as f:
-        json.dump(tensor_to_obj(metrics), f, indent=2)
-
-    # pretty print
-    print("\n  Test-set results")
-    for k, v in metrics.items():
-        if k not in {"conf_matrix", "iou_per_cls"}:
-            print(f"  {k:12s}: {v:0.4f}")
-    print("  IoU / class :", ["{:.3f}".format(x) for x in metrics['iou_per_cls']])
-
-
 if __name__ == "__main__":
-    #train()
-    #print(" Training complete!")
-    #print(f"Model and metrics saved in '{config['results_path']}'")
-    best_model_path = Path(config['results_path']) / 'UNetConcat_best_model.pth'
-    evaluate_on_test(best_model_path, Path(config['results_path']))
-
-    print("All done!  Metrics stored in UNetConcat_test_metrics.json")
+    train()
+    print(" Training complete!")
+    print(f"Model and metrics saved in '{config['results_path']}'")

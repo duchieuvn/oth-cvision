@@ -152,7 +152,7 @@ def evaluate_on_test(model_path, result_path):
         spatial_dims=2,
         in_channels=3,
         out_channels=num_classes,
-        features=(16, 32, 64, 128, 256, 16),
+        features=(32, 32, 64, 256, 512, 32),
         deep_supervision=False,
         act=("ReLU", {"inplace": True}),
         norm=("batch", {"affine": True})

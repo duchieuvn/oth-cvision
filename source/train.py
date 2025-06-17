@@ -22,9 +22,13 @@ train_cfg = config['training']
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load datasets
-train_data = utils.BUSIDataset(root=config['data_root'], subset=config['train_folder'])
-val_data = utils.BUSIDataset(root=config['data_root'], subset=config['val_folder'])
-test_data = utils.BUSIDataset(root=config['data_root'], subset=config['test_folder'])
+#train_data = utils.BUSIDataset(root=config['data_root'], subset=config['train_folder'])
+#val_data = utils.BUSIDataset(root=config['data_root'], subset=config['val_folder'])
+#test_data = utils.BUSIDataset(root=config['data_root'], subset=config['test_folder'])
+train_data = utils.DynamicNucDataset("train", size=256)
+val_data   = utils.DynamicNucDataset("val",   size=256)
+test_data  = utils.DynamicNucDataset("test",  size=256)
+
 
 train_loader = DataLoader(train_data, batch_size=train_cfg['batch_size']['train'], shuffle=True)
 val_loader = DataLoader(val_data, batch_size=train_cfg['batch_size']['eval'], shuffle=False)

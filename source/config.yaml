@@ -4,6 +4,14 @@ train_folder: train_folder
 val_folder: val_folder
 test_folder: test_folder
 
+
+data_root_dn: ../data/dynamicnuclear
+train_folder_dn: train
+val_folder_dn:   val
+test_folder_dn:  test
+
+
+
 results_path: ../results/BUSI/train
 
 training:

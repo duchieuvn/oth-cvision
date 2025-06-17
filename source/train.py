@@ -49,7 +49,7 @@ def train():
     spatial_dims=2,
     in_channels=3,
     out_channels=num_classes,
-    features=(16, 32, 64, 128, 256),   # 5 scales is the canonical setting
+    features=(16, 32, 64, 128, 256, 16),   # 5 scales is the canonical setting
     deep_supervision=False,            # returns a single tensor, not a list
     act=("ReLU", {"inplace": True}),
     norm=("batch", {"affine": True})
@@ -162,7 +162,7 @@ def evaluate_on_test(model_path, result_path):
     spatial_dims=2,
     in_channels=3,
     out_channels=num_classes,
-    features=(16, 32, 64, 128, 256),   # 5 scales is the canonical setting
+    features=(16, 32, 64, 128, 256, 16),   # 5 scales is the canonical setting
     deep_supervision=False,            # returns a single tensor, not a list
     act=("ReLU", {"inplace": True}),
     norm=("batch", {"affine": True})

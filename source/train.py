@@ -35,16 +35,26 @@ def train():
     num_classes = train_cfg['num_classes']
     #model = UNetConcat(out_channels=num_classes).to(device)
     
-    model = BasicUNetPlusPlusSum(
-        spatial_dims=2,
-        in_channels=3,
-        out_channels=num_classes,
-        features=(16, 32, 64, 128, 256, 16),
-        deep_supervision=False,
-        act=("ReLU", {"inplace": True}),
-        norm=("batch", {"affine": True})
-    ).to(device)
+    #model = BasicUNetPlusPlusSum(
+    #    spatial_dims=2,
+    #    in_channels=3,
+    #    out_channels=num_classes,
+    #    features=(16, 32, 64, 128, 256, 16),
+    #    deep_supervision=False,
+    #    act=("ReLU", {"inplace": True}),
+    #    norm=("batch", {"affine": True})
+    #).to(device)
 
+    model = BasicUNetPlusPlus(
+    spatial_dims=2,
+    in_channels=3,
+    out_channels=num_classes,
+    features=(16, 32, 64, 128, 256),   # 5 scales is the canonical setting
+    deep_supervision=False,            # returns a single tensor, not a list
+    act=("ReLU", {"inplace": True}),
+    norm=("batch", {"affine": True})
+    ).to(device)
+    
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=train_cfg['learning_rate'])
 
@@ -70,7 +80,7 @@ def train():
         for imgs, masks in train_bar:
             imgs, masks = imgs.to(device), masks.to(device)
             #outputs = model(imgs) unet
-            outputs = model(imgs)[0] # unetpp
+            outputs = model(imgs) # unetpp
 
             loss = criterion(outputs, masks)
             optimizer.zero_grad()
@@ -94,7 +104,7 @@ def train():
             for imgs, masks in val_loader:
                 imgs, masks = imgs.to(device), masks.to(device)
                 #outputs = model(imgs) unet
-                outputs = model(imgs)[0] # unetpp
+                outputs = model(imgs) # unetpp
 
                 loss = criterion(outputs, masks)
                 total_val_loss += loss.item()
@@ -148,14 +158,14 @@ def tensor_to_obj(obj):
 def evaluate_on_test(model_path, result_path):
     num_classes = train_cfg['num_classes']
     #model = UNetConcat(out_channels=num_classes).to(device)
-    model = BasicUNetPlusPlusSum(
-        spatial_dims=2,
-        in_channels=3,
-        out_channels=num_classes,
-        features=(32, 32, 64, 256, 512, 32),
-        deep_supervision=False,
-        act=("ReLU", {"inplace": True}),
-        norm=("batch", {"affine": True})
+    model = BasicUNetPlusPlus(
+    spatial_dims=2,
+    in_channels=3,
+    out_channels=num_classes,
+    features=(16, 32, 64, 128, 256),   # 5 scales is the canonical setting
+    deep_supervision=False,            # returns a single tensor, not a list
+    act=("ReLU", {"inplace": True}),
+    norm=("batch", {"affine": True})
     ).to(device)
 
     model.load_state_dict(torch.load(model_path))
@@ -175,7 +185,7 @@ def evaluate_on_test(model_path, result_path):
         for imgs, masks in test_bar:
             imgs, masks = imgs.to(device), masks.to(device)
 
-            logits = model(imgs)[0]
+            logits = model(imgs)
             loss   = criterion(logits, masks)
 
             preds  = torch.argmax(logits, dim=1)
@@ -216,5 +226,4 @@ if __name__ == "__main__":
     print(f"Model and metrics saved in '{config['results_path']}'")
     best_model_path = Path(config['results_path']) / 'UNetPlusPlusSum_best_model.pth'
     evaluate_on_test(best_model_path, Path(config['results_path']))
-
     print("All done!  Metrics stored in UNetPlusPlusSum_test_metrics.json")

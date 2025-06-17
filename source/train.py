@@ -80,7 +80,7 @@ def train():
         for imgs, masks in train_bar:
             imgs, masks = imgs.to(device), masks.to(device)
             #outputs = model(imgs) unet
-            outputs = model(imgs) # unetpp
+            outputs = model(imgs)[0] # unetpp
 
             loss = criterion(outputs, masks)
             optimizer.zero_grad()
@@ -104,7 +104,7 @@ def train():
             for imgs, masks in val_loader:
                 imgs, masks = imgs.to(device), masks.to(device)
                 #outputs = model(imgs) unet
-                outputs = model(imgs) # unetpp
+                outputs = model(imgs)[0] # unetpp
 
                 loss = criterion(outputs, masks)
                 total_val_loss += loss.item()
@@ -185,7 +185,7 @@ def evaluate_on_test(model_path, result_path):
         for imgs, masks in test_bar:
             imgs, masks = imgs.to(device), masks.to(device)
 
-            logits = model(imgs)
+            logits = model(imgs)[0]
             loss   = criterion(logits, masks)
 
             preds  = torch.argmax(logits, dim=1)

@@ -66,7 +66,7 @@ class DynamicNucDataset(torch.utils.data.Dataset):
         self.masks = []
         self.transform = binary_class_data_transform
 
-        img_path = Path(root) / subset / 'imges'
+        img_path = Path(root) / subset / 'images'
         print(img_path)
         for filename in sorted(img_path.glob("*.png")):
             self.images.append(filename)

@@ -12,9 +12,18 @@ test_folder_dn:  test
 
 
 
-results_path: ../results/BUSI/train
+
+data_root_dn: ../data/dynamicnuclear
+train_folder_dn: train
+val_folder_dn:   val
+test_folder_dn:  test
+
+
+
+model_name: UNetConcat
 
 training:
+  results_path: ../results/BUSI/train
   batch_size:
     train: 1
     eval: 1
@@ -22,3 +31,8 @@ training:
   learning_rate: 0.0001
   num_epochs: 300
   early_stopping_patience: 5
+
+testing:
+  results_path: ../results/BUSI/test
+  batch_size: 4
+  num_classes: 2

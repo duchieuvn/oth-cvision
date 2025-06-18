@@ -32,7 +32,6 @@ test_data  = utils.DynamicNucDataset("test",  size=256)
 
 train_loader = DataLoader(train_data, batch_size=train_cfg['batch_size']['train'], shuffle=True)
 val_loader = DataLoader(val_data, batch_size=train_cfg['batch_size']['eval'], shuffle=False)
-test_loader = DataLoader(test_data, batch_size=train_cfg['batch_size']['eval'], shuffle=False)
 
 
 def train():
@@ -62,7 +61,7 @@ def train():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=train_cfg['learning_rate'])
 
-    result_path = Path(config['results_path'])
+    result_path = Path(train_cfg['results_path'])
     result_path.mkdir(parents=True, exist_ok=True)
 
     model_path = result_path / 'UNetPlusPlusSum_best_model.pth'
@@ -81,7 +80,7 @@ def train():
         start_time = time.time()
 
         train_bar = tqdm(train_loader, desc=f"Epoch {epoch+1}", leave=False)
-        for imgs, masks in train_bar:
+        for imgs, masks, _ in train_bar:
             imgs, masks = imgs.to(device), masks.to(device)
             #outputs = model(imgs) unet
             outputs = model(imgs)[0] # unetpp

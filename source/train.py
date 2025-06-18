@@ -39,25 +39,25 @@ def train():
     num_classes = train_cfg['num_classes']
     #model = UNetConcat(out_channels=num_classes).to(device)
     
-    #model = BasicUNetPlusPlusSum(
-    #    spatial_dims=2,
-    #    in_channels=3,
-    #    out_channels=num_classes,
-    #    features=(16, 32, 64, 128, 256, 16),
-    #    deep_supervision=False,
-    #    act=("ReLU", {"inplace": True}),
-    #    norm=("batch", {"affine": True})
-    #).to(device)
-
-    model = BasicUNetPlusPlus(
-    spatial_dims=2,
-    in_channels=3,
-    out_channels=num_classes,
-    features=(16, 32, 64, 128, 256, 16),   # 5 scales is the canonical setting
-    deep_supervision=False,            # returns a single tensor, not a list
-    act=("ReLU", {"inplace": True}),
-    norm=("batch", {"affine": True})
+    model = BasicUNetPlusPlusSum(
+        spatial_dims=2,
+        in_channels=3,
+        out_channels=num_classes,
+        features=(16, 32, 64, 128, 256, 16),
+        deep_supervision=False,
+        act=("ReLU", {"inplace": True}),
+        norm=("batch", {"affine": True})
     ).to(device)
+
+    #model = BasicUNetPlusPlus(
+    #spatial_dims=2,
+    #in_channels=3,
+    #out_channels=num_classes,
+    #features=(16, 32, 64, 128, 256, 16),   # 5 scales is the canonical setting
+    #deep_supervision=False,            # returns a single tensor, not a list
+    #act=("ReLU", {"inplace": True}),
+    #norm=("batch", {"affine": True})
+    #).to(device)
     
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=train_cfg['learning_rate'])
@@ -162,14 +162,14 @@ def tensor_to_obj(obj):
 def evaluate_on_test(model_path, result_path):
     num_classes = train_cfg['num_classes']
     #model = UNetConcat(out_channels=num_classes).to(device)
-    model = BasicUNetPlusPlus(
-    spatial_dims=2,
-    in_channels=3,
-    out_channels=num_classes,
-    features=(16, 32, 64, 128, 256, 16),   # 5 scales is the canonical setting
-    deep_supervision=False,            # returns a single tensor, not a list
-    act=("ReLU", {"inplace": True}),
-    norm=("batch", {"affine": True})
+    model = BasicUNetPlusPlusSum(
+        spatial_dims=2,
+        in_channels=3,
+        out_channels=num_classes,
+        features=(16, 32, 64, 128, 256, 16),
+        deep_supervision=False,
+        act=("ReLU", {"inplace": True}),
+        norm=("batch", {"affine": True})
     ).to(device)
 
     model.load_state_dict(torch.load(model_path))

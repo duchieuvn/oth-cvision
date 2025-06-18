@@ -122,6 +122,6 @@ def train():
 
 
 if __name__ == "__main__":
-    train()
+    #train()
     print(" Training complete!")
-    print(f"Model and metrics saved in '{config['results_path']}'")
+    print(f"Model and metrics saved in '{train_cfg['results_path']}'")

@@ -26,7 +26,8 @@ def evaluate_on_test(model_path, config):
     test_cfg = config['testing']
     result_path = Path(test_cfg['results_path'])
 
-    test_data = utils.BUSIDataset(root=config['data_root'], subset=config['test_folder'])
+    #test_data = utils.BUSIDataset(root=config['data_root'], subset=config['test_folder'])
+    test_data = utils.DynamicNucDataset(root=config['data_root_dn'], subset=config['test_dn'])
     test_loader = DataLoader(test_data, batch_size=test_cfg['batch_size'], shuffle=False)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

@@ -12,14 +12,6 @@ test_dn:  test
 
 
 
-
-data_root_dn: ../data/dynamicnuclear
-train_folder_dn: train
-val_folder_dn:   val
-test_folder_dn:  test
-
-
-
 model_name: UNetConcat
 
 training:

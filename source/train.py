@@ -27,7 +27,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 train_data = utils.DynamicNucDataset(root=config['data_root_dn'], subset=config['train_dn'])
 val_data   = utils.DynamicNucDataset(root=config['data_root_dn'], subset=config['val_dn'])
-
+print(len(train_data))
 train_loader = DataLoader(train_data, batch_size=train_cfg['batch_size']['train'], shuffle=True)
 val_loader = DataLoader(val_data, batch_size=train_cfg['batch_size']['eval'], shuffle=False)
 

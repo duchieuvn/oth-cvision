@@ -80,7 +80,7 @@ def train():
         total_val_iou = 0
         val_batches = 0
         with torch.no_grad():
-            for imgs, masks in val_loader:
+            for imgs, masks, _ in val_loader:
                 imgs, masks = imgs.to(device), masks.to(device)
                 outputs = model(imgs)
 

@@ -24,3 +24,7 @@ wget http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar
 tar -xvf VOCtrainval_11-May-2012.tar
 ``` 
 ls
+
+# Reference
+- Unet: https://arxiv.org/abs/1505.04597
+- Unet++: https://arxiv.org/abs/1807.10165

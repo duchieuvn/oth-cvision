@@ -4,6 +4,7 @@ datasets:
     train_folder: train_folder
     val_folder: val_folder
     test_folder: test_folder
+    num_classes: 2
   DynamicNuclear:
     data_root: ../data/dynamicnuclear
     train_folder: train
@@ -14,13 +15,11 @@ model_name: UNetConcat
 
 training:
   batch_size:
-    train: 1
-    eval: 1
-  num_classes: 2
+    train: 8
+    eval: 4
   learning_rate: 0.0001
   num_epochs: 300
   early_stopping_patience: 5
 
 testing:
   batch_size: 4
-  num_classes: 2

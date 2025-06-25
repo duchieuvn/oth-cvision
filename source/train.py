@@ -14,7 +14,7 @@ def train(model_name, config):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     DATASET_NAME = 'BUSI'
-    datasets_cfg = config['datasets']['DATASET_NAME']
+    datasets_cfg = config['datasets'][DATASET_NAME]
     DATASET_ROOT = datasets_cfg['dataset_root']
     DATASET_TRAIN = datasets_cfg['train_folder']
     DATASET_VAL = datasets_cfg['val_folder']

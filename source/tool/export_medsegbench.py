@@ -5,6 +5,7 @@ from tqdm import tqdm
 from pathlib import Path
 from PIL import Image
 from torch.utils.data import DataLoader
+import torch
 
 from medsegbench import DynamicNuclearMSBench, USforKidneyMSBench, Covid19RadioMSBench
 
@@ -15,19 +16,25 @@ def save_png(arr, path, replicate=False):
         arr = np.stack([arr] * 3, axis=2)  # grayscale -> RGB
     Image.fromarray(arr).save(path, compress_level=0)
 
-def convert_split(dataset_cls, split, out_root, size):
+def convert_split(dataset_cls, split, out_root, size, category=None):
     try:
-        ds = dataset_cls(split=split, size=size, download=True)
-    except AssertionError as e:
-        print(f"⚠️ Skipping invalid split: {split} – {e}")
+        if category:
+            ds = dataset_cls(split=split, size=size, category=category, download=True)
+            split_folder = f"{split}_{category}"
+        else:
+            ds = dataset_cls(split=split, size=size, download=True)
+            split_folder = split
+    except (AssertionError, ValueError) as e:
+        print(f"⚠️ Skipping invalid split: {split}{'_'+category if category else ''} – {e}")
         return
 
-    img_dir = os.path.join(out_root, split, "images")
-    msk_dir = os.path.join(out_root, split, "masks")
+    
+    img_dir = os.path.join(out_root, split_folder, "images")
+    msk_dir = os.path.join(out_root, split_folder, "masks")
     os.makedirs(img_dir, exist_ok=True)
     os.makedirs(msk_dir, exist_ok=True)
 
-    for idx, (img_pil, msk_np) in enumerate(tqdm(ds, desc=f"{split:15s}")):
+    for idx, (img_pil, msk_np) in enumerate(tqdm(ds, desc=f"{split_folder:15s}")):
         img_np = np.array(img_pil, dtype=np.uint8)
         msk_np = (msk_np > 0).astype(np.uint8)
 
@@ -35,10 +42,6 @@ def convert_split(dataset_cls, split, out_root, size):
         save_png(img_np, os.path.join(img_dir, fname), replicate=True)
         save_png(msk_np * 255, os.path.join(msk_dir, fname))
 
-# ==== PyTorch Dataset Classes ====
-
-from PIL import Image
-import torch
 
 class DynamicNucDataset(torch.utils.data.Dataset):
     def __init__(self, root, subset='train'):
@@ -101,8 +104,7 @@ if __name__ == "__main__":
             # Category-specific
             for cat in covid_categories:
                 for split in standard_splits:
-                    full_split = f"{split}_{cat}"
-                    convert_split(dataset_cls, full_split, dataset_root, args.size)
+                    convert_split(dataset_cls, split, dataset_root, args.size, category=cat)
         else:
             for split in standard_splits:
                 convert_split(dataset_cls, split, dataset_root, args.size)

@@ -14,7 +14,7 @@ import numpy as np
 from tqdm import tqdm
 from PIL import Image
 
-from medsegbench import DynamicNuclearMSBench, UsForKidneyBench, Covid19RadioMSBench
+from medsegbench import DynamicNuclearMSBench, Covid19RadioMSBench, USforKidneyMSBench
 
 def save_png(arr, path, replicate=False):
     if replicate:
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     # Dataset class mappings
     datasets = {
         "DynamicNuclear": DynamicNuclearMSBench,
-        "UsForKidney": UsForKidneyBench,
+        "UsForKidney": USforKidneyMSBench,
         "Covid19Radio": Covid19RadioMSBench,
     }
 

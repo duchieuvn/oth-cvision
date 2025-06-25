@@ -15,7 +15,7 @@ def train(model_name, config):
 
     DATASET_NAME = 'BUSI'
     datasets_cfg = config['datasets'][DATASET_NAME]
-    DATASET_ROOT = datasets_cfg['dataset_root']
+    DATASET_ROOT = datasets_cfg['data_root']
     DATASET_TRAIN = datasets_cfg['train_folder']
     DATASET_VAL = datasets_cfg['val_folder']
 

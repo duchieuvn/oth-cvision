@@ -10,14 +10,15 @@ train_folder_dn: train
 val_folder_dn:   val
 test_folder_dn:  test
 
+data_root_ufk: ../data/usforkidney
+train_ufk: train
+val_ufk: val
+test_ufk: test
 
-
-
-data_root_dn: ../data/dynamicnuclear
-train_folder_dn: train
-val_folder_dn:   val
-test_folder_dn:  test
-
+data_root_covid: ../data/covid19radio
+train_covid: train
+val_covid: val
+test_covid: test
 
 
 model_name: UNetConcat

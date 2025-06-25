@@ -61,18 +61,82 @@ class BUSIDataset(torch.utils.data.Dataset):
         return img, mask, img_path.stem  # Return image name for reference 
 
 class DynamicNucDataset(torch.utils.data.Dataset):
-    def __init__(self, split="train", size=256):
-        self.ds = DynamicNuclearMSBench(split=split, size=size, download=True)
+    def __init__(self, root, subset='train'):
+        self.images = []
+        self.masks = []
+        self.transform = binary_class_data_transform
+
+        img_path = Path(root) / subset / 'images'
+        print(img_path)
+        for filename in sorted(img_path.glob("*.png")):
+            self.images.append(filename)
+
+        mask_path = Path(root) / subset / 'masks'
+        print(mask_path)
+        for filename in sorted(mask_path.glob("*.png")):
+            self.masks.append(filename)
 
     def __len__(self):
-        return len(self.ds)
+        return len(self.images)
 
     def __getitem__(self, idx):
-        img_pil, mask_np = self.ds[idx]
-        img = torch.from_numpy(np.array(img_pil)[None]).float() / 255.      # (1,H,W)
-        img = img.repeat(3, 1, 1)                                           # (3,H,W)
-        mask = torch.from_numpy((mask_np > 0).astype(np.int64))             # (H,W)
-        return img, mask
+        img_path = self.images[idx]
+        mask_path = self.masks[idx]
+       
+        img = Image.open(img_path).convert('RGB')
+        mask = Image.open(mask_path).convert('L')  # Grayscale mask
+        img, mask = self.transform(img, mask)
+        
+        # Convert to binary mask: 0 for background, 1 for lesion
+        mask = (mask > 0).long()
+        return img, mask, img_path.stem
+
+class UsForKidneyDataset(torch.utils.data.Dataset):
+    def __init__(self, root, subset='train'):
+        self.images = []
+        self.masks = []
+        self.transform = binary_class_data_transform
+
+        img_path = Path(root) / subset / 'images'
+        mask_path = Path(root) / subset / 'masks'
+        print(f"Loading UsForKidney: {img_path}, {mask_path}")
+
+        self.images = sorted(img_path.glob("*.png"))
+        self.masks = sorted(mask_path.glob("*.png"))
+
+    def __len__(self):
+        return len(self.images)
+
+    def __getitem__(self, idx):
+        img = Image.open(self.images[idx]).convert('RGB')
+        mask = Image.open(self.masks[idx]).convert('L')
+        img, mask = self.transform(img, mask)
+        mask = (mask > 0).long()
+        return img, mask, self.images[idx].stem
+
+
+class Covid19RadioDataset(torch.utils.data.Dataset):
+    def __init__(self, root, subset='train'):
+        self.images = []
+        self.masks = []
+        self.transform = binary_class_data_transform
+
+        img_path = Path(root) / subset / 'images'
+        mask_path = Path(root) / subset / 'masks'
+        print(f"Loading Covid19Radio: {img_path}, {mask_path}")
+
+        self.images = sorted(img_path.glob("*.png"))
+        self.masks = sorted(mask_path.glob("*.png"))
+
+    def __len__(self):
+        return len(self.images)
+
+    def __getitem__(self, idx):
+        img = Image.open(self.images[idx]).convert('RGB')
+        mask = Image.open(self.masks[idx]).convert('L')
+        img, mask = self.transform(img, mask)
+        mask = (mask > 0).long()
+        return img, mask, self.images[idx].stem
 
 
 def compute_iou(preds, masks, num_classes):  # nhớ sửa num_classes cho đúng model của bạn

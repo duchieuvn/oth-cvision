@@ -104,7 +104,7 @@ class UNetConcat(nn.Module):
 
 class UNetSum(nn.Module):
 
-    def __init__(self, in_channels=1, out_channels=1, init_features=32):
+    def __init__(self, in_channels=3, out_channels=1, init_features=32):
         super(UNetSum, self).__init__()
 
         features = init_features

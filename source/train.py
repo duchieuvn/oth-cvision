@@ -23,7 +23,7 @@ def train(model_name, config):
     train_cfg = config['training']
     NUM_EPOCHS = train_cfg['num_epochs']
     LEARNING_RATE = train_cfg['learning_rate']
-    RESULT_PATH = '../results/{model_name}/train/{DATASET_NAME}'
+    RESULT_PATH = f'../results/{model_name}/train/{DATASET_NAME}'
     TRAIN_BATCH_SIZE = train_cfg['batch_size']['train']
     VAL_BATCH_SIZE = train_cfg['batch_size']['val']
     EARLY_STOP_PATIENCE = train_cfg['early_stopping_patience']

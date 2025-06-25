@@ -25,7 +25,7 @@ def convert_split(dataset_cls, split, out_root, size, category=None):
             ds = dataset_cls(split=split, size=size, download=True)
             split_folder = split
     except (AssertionError, ValueError) as e:
-        print(f"⚠️ Skipping invalid split: {split}{'_'+category if category else ''} – {e}")
+        print(f" Skipping invalid split: {split}{'_'+category if category else ''} – {e}")
         return
 
     
@@ -66,14 +66,14 @@ Covid19RadioDataset = DynamicNucDataset
 # ==== Test Loader ====
 
 def test_dataset(dataset_class, root, split, label):
-    print(f"\n🔍 Testing {label}: {split}")
+    print(f"\n Testing {label}: {split}")
     try:
         dataset = dataset_class(root=root, subset=split)
         loader = DataLoader(dataset, batch_size=1, shuffle=False)
         sample = next(iter(loader))
-        print(f"✅ Loaded {label} [{split}]: {len(dataset)} samples, shape: {sample[0].shape}, {sample[1].shape}")
+        print(f" Loaded {label} [{split}]: {len(dataset)} samples, shape: {sample[0].shape}, {sample[1].shape}")
     except Exception as e:
-        print(f"❌ Failed to load {label} [{split}]: {e}")
+        print(f" Failed to load {label} [{split}]: {e}")
 
 # ==== Main ====
 
@@ -89,18 +89,17 @@ if __name__ == "__main__":
         "Covid19Radio": Covid19RadioMSBench
     }
 
-    covid_categories = ['C1', 'C2', 'C3', 'C4']
     standard_splits = ['train', 'val', 'test']
 
-    print("📥 Exporting datasets...")
+    print(" Exporting datasets...")
     for name, dataset_cls in datasets.items():
-        print(f"\n📦 Processing {name}")
+        print(f"\n Processing {name}")
         dataset_root = os.path.join(args.out_root, name)
 
         for split in standard_splits:
             convert_split(dataset_cls, split, dataset_root, args.size)
 
-    print("\n🧪 Testing dataset loading...")
+    print("\n Testing dataset loading...")
 
     test_dataset(DynamicNucDataset, os.path.join(args.out_root, "DynamicNuclear"), 'train', "DynamicNuclear")
     test_dataset(DynamicNucDataset, os.path.join(args.out_root, "DynamicNuclear"), 'val', "DynamicNuclear")
@@ -111,8 +110,4 @@ if __name__ == "__main__":
     test_dataset(Covid19RadioDataset, os.path.join(args.out_root, "Covid19Radio"), 'train', "Covid19Radio")
     test_dataset(Covid19RadioDataset, os.path.join(args.out_root, "Covid19Radio"), 'val', "Covid19Radio")
 
-    for cat in ['C1', 'C2', 'C3', 'C4']:
-        split = f"train_{cat}"
-        test_dataset(Covid19RadioDataset, os.path.join(args.out_root, "Covid19Radio"), split, f"Covid19Radio-{cat}")
-
-    print("\n✅ All done!")
+    print("\n All done!")

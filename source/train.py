@@ -12,27 +12,23 @@ import utils
 from models import UNetConcat, MonaiUnet, BasicUNetPlusPlus
 
 
-# Load config.yaml
-with open('config.yaml', 'r') as f:
-    config = yaml.safe_load(f)
-
-# Shortcuts for YAML structure
-train_cfg = config['training']
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# Load datasets
-#train_data = utils.BUSIDataset(root=config['data_root'], subset=config['train_folder'])
-#val_data = utils.BUSIDataset(root=config['data_root'], subset=config['val_folder'])
-
-train_data = utils.DynamicNucDataset("train", size=256)
-val_data   = utils.DynamicNucDataset("val",   size=256)
-
-train_loader = DataLoader(train_data, batch_size=train_cfg['batch_size']['train'], shuffle=True)
-val_loader = DataLoader(val_data, batch_size=train_cfg['batch_size']['eval'], shuffle=False)
 
 
-def train():
+
+def train(config):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    train_cfg = config['training']
+    # Load datasets
+    train_data = utils.BUSIDataset(root=config['data_root'], subset=config['train_folder'])
+    val_data = utils.BUSIDataset(root=config['data_root'], subset=config['val_folder'])
+
+    # train_data = utils.DynamicNucDataset("train", size=256)
+    # val_data   = utils.DynamicNucDataset("val",   size=256)
+
+    train_loader = DataLoader(train_data, batch_size=train_cfg['batch_size']['train'], shuffle=True)
+    val_loader = DataLoader(val_data, batch_size=train_cfg['batch_size']['eval'], shuffle=False)
+
     num_classes = train_cfg['num_classes']
     model = UNetConcat(out_channels=num_classes).to(device)
     criterion = nn.CrossEntropyLoss()
@@ -122,6 +118,11 @@ def train():
 
 
 if __name__ == "__main__":
-    train()
+
+    # Load config.yaml
+    with open('config.yaml', 'r') as f:
+        config = yaml.safe_load(f)
+
+    train(config)
     print(" Training complete!")
     print(f"Model and metrics saved in '{config['results_path']}'")

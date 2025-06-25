@@ -14,6 +14,19 @@
 
 
 # Data
+
+1. Data should be place inside `data` folder
+
+Example:  
+```
+./    
+  source/    
+  data/   
+    BUSI/   
+    PASCAL/   
+  results/    
+```
+
 ```
 curl -L -o medical-image-segmentation-datasets-hi-gmisnet.zip\
   https://www.kaggle.com/api/v1/datasets/download/tushartalukder/medical-image-segmentation-datasets-hi-gmisnet

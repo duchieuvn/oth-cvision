@@ -6,7 +6,7 @@ from pathlib import Path
 from PIL import Image
 from torch.utils.data import DataLoader
 
-from medsegbench import DynamicNuclearMSBench, UsForKidneyBench, Covid19RadioMSBench
+from medsegbench import DynamicNuclearMSBench, USforKidneyMSBench, Covid19RadioMSBench
 
 # ==== Dataset Conversion Helpers ====
 
@@ -82,7 +82,7 @@ if __name__ == "__main__":
 
     datasets = {
         "DynamicNuclear": DynamicNuclearMSBench,
-        "UsForKidney": UsForKidneyBench,
+        "UsForKidney": USforKidneyMSBench,
         "Covid19Radio": Covid19RadioMSBench
     }
 

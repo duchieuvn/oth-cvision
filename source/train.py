@@ -7,45 +7,64 @@ import json
 from pathlib import Path
 from tqdm import tqdm
 import yaml
-
 import utils
-from models import UNetConcat, MonaiUnet, BasicUNetPlusPlus
+from models import UNetConcat, MonaiUnet, BasicUNetPlusPlus, UNetSum
 
+def train(model_name, config):
 
-
-
-
-def train(config):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    DATASET_CLASS_ROOT = config['data_root']
+    DATASET_CLASS_TRAIN = config['train_folder']
+    DATASET_CLASS_VAL = config['val_folder']
+
     train_cfg = config['training']
-    # Load datasets
-    train_data = utils.BUSIDataset(root=config['data_root'], subset=config['train_folder'])
-    val_data = utils.BUSIDataset(root=config['data_root'], subset=config['val_folder'])
+    NUM_EPOCHS = train_cfg['num_epochs']
+    LEARNING_RATE = train_cfg['learning_rate']
+    RESULT_PATH = train_cfg['results_path']
+    TRAIN_BATCH_SIZE = train_cfg['batch_size']['train']
+    VAL_BATCH_SIZE = train_cfg['batch_size']['val']
+    NUM_CLASSES = train_cfg['num_classes']
+    EARLY_STOP_PATIENCE = train_cfg['early_stopping_patience']
+    
+    # OUTPUT PATHS
+    result_path = Path(RESULT_PATH)
+    result_path.mkdir(parents=True, exist_ok=True)
+    model_path = result_path / '{model_name}_best_model.pth'
+    metrics_path = result_path / '{model_name}_metrics.json'
+
+    # DATASETS
+    train_data = utils.BUSIDataset(root=DATASET_CLASS_ROOT, subset=DATASET_CLASS_TRAIN)
+    val_data = utils.BUSIDataset(root=DATASET_CLASS_ROOT, subset=DATASET_CLASS_VAL)
 
     # train_data = utils.DynamicNucDataset("train", size=256)
     # val_data   = utils.DynamicNucDataset("val",   size=256)
 
-    train_loader = DataLoader(train_data, batch_size=train_cfg['batch_size']['train'], shuffle=True)
-    val_loader = DataLoader(val_data, batch_size=train_cfg['batch_size']['eval'], shuffle=False)
+    train_loader = DataLoader(train_data, batch_size=TRAIN_BATCH_SIZE, shuffle=True)
+    val_loader = DataLoader(val_data, batch_size=VAL_BATCH_SIZE, shuffle=False)
 
-    num_classes = train_cfg['num_classes']
-    model = UNetConcat(out_channels=num_classes).to(device)
+    # MODEL & TRAINING CONFIGURATION
+    model = UNetConcat(out_channels=NUM_CLASSES).to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=train_cfg['learning_rate'])
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
-    result_path = Path(train_cfg['results_path'])
-    result_path.mkdir(parents=True, exist_ok=True)
-
-    model_path = result_path / 'UNetConcat_best_model.pth'
-    metrics_path = result_path / 'UNetConcat_metrics.json'
-
-    patience = train_cfg['early_stopping_patience']
+    if model_name == 'unet_sum':
+        model = UNetSum(out_channels=NUM_CLASSES).to(device)
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    elif model_name == 'unet_concat':
+        model = UNetConcat(out_channels=NUM_CLASSES).to(device)
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+        
+    # early stopping 
     best_loss = float('inf')
     early_stopping_count = 0
     metrics_records = []
 
-    for epoch in range(train_cfg['num_epochs']):
+
+    # TRAINING LOOP
+    for epoch in range(NUM_EPOCHS):
         model.train()
         total_train_loss = 0
         total_train_iou = 0
@@ -63,7 +82,7 @@ def train(config):
             optimizer.step()
 
             total_train_loss += loss.item()
-            total_train_iou += utils.compute_iou(outputs, masks, num_classes=num_classes)
+            total_train_iou += utils.compute_iou(outputs, masks, num_classes=NUM_CLASSES)
             train_batches += 1
 
             train_bar.set_postfix(loss=loss.item())
@@ -71,6 +90,7 @@ def train(config):
         avg_train_loss = total_train_loss / train_batches
         avg_train_iou = total_train_iou / train_batches
 
+        # Validation
         model.eval()
         total_val_loss = 0
         total_val_iou = 0
@@ -82,7 +102,7 @@ def train(config):
 
                 loss = criterion(outputs, masks)
                 total_val_loss += loss.item()
-                total_val_iou += utils.compute_iou(outputs, masks, num_classes=num_classes)
+                total_val_iou += utils.compute_iou(outputs, masks, num_classes=NUM_CLASSES)
                 val_batches += 1
 
         avg_val_loss = total_val_loss / val_batches
@@ -100,7 +120,7 @@ def train(config):
         else:
             early_stopping_count += 1
             print(f"⚠️ No improvement for {early_stopping_count} epochs.")
-            if early_stopping_count >= patience:
+            if early_stopping_count >= EARLY_STOP_PATIENCE:
                 print("🛑 Early stopping triggered!")
                 break
 
@@ -116,6 +136,8 @@ def train(config):
     with open(metrics_path, 'w') as f:
         json.dump(metrics_records, f, indent=2)
 
+    print(" Training complete!")
+    print(f"Model and metrics saved in {RESULT_PATH}")
 
 if __name__ == "__main__":
 
@@ -124,5 +146,3 @@ if __name__ == "__main__":
         config = yaml.safe_load(f)
 
     train(config)
-    print(" Training complete!")
-    print(f"Model and metrics saved in '{config['results_path']}'")

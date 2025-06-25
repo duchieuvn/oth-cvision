@@ -9,6 +9,7 @@ from tqdm import tqdm
 import yaml
 import utils
 from models import UNetConcat, MonaiUnet, BasicUNetPlusPlus, UNetSum
+from datetime import datetime
 
 def train(model_name, config):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -23,7 +24,8 @@ def train(model_name, config):
     train_cfg = config['training']
     NUM_EPOCHS = train_cfg['num_epochs']
     LEARNING_RATE = train_cfg['learning_rate']
-    RESULT_PATH = f'../results/{model_name}/train/{DATASET_NAME}'
+    timestamp = int(datetime.now().strftime("date-%d%m%-%H%M%S"))
+    RESULT_PATH = f'../results/train/{timestamp}/{DATASET_NAME}'
     TRAIN_BATCH_SIZE = train_cfg['batch_size']['train']
     VAL_BATCH_SIZE = train_cfg['batch_size']['val']
     EARLY_STOP_PATIENCE = train_cfg['early_stopping_patience']
@@ -31,8 +33,8 @@ def train(model_name, config):
     # OUTPUT PATHS
     result_path = Path(RESULT_PATH)
     result_path.mkdir(parents=True, exist_ok=True)
-    model_path = result_path / '{model_name}_{DATASET_NAME}_best_model.pth'
-    metrics_path = result_path / '{model_name}_metrics.json'
+    model_path = result_path / f'{model_name}_best_model.pth'
+    metrics_path = result_path / f'{model_name}_metrics.json'
 
     # DATASETS
     train_data = utils.BUSIDataset(root=DATASET_ROOT, subset=DATASET_TRAIN)

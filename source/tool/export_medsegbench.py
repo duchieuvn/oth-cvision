@@ -97,17 +97,8 @@ if __name__ == "__main__":
         print(f"\n📦 Processing {name}")
         dataset_root = os.path.join(args.out_root, name)
 
-        if name == "Covid19Radio":
-            # Global splits
-            for split in standard_splits:
-                convert_split(dataset_cls, split, dataset_root, args.size)
-            # Category-specific
-            for cat in covid_categories:
-                for split in standard_splits:
-                    convert_split(dataset_cls, split, dataset_root, args.size, category=cat)
-        else:
-            for split in standard_splits:
-                convert_split(dataset_cls, split, dataset_root, args.size)
+        for split in standard_splits:
+            convert_split(dataset_cls, split, dataset_root, args.size)
 
     print("\n🧪 Testing dataset loading...")
 

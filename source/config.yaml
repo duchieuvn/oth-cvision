@@ -1,29 +1,18 @@
-# data_path config for BUSI dataset
-data_root: ../data/Hi-gMISnet_all_dataset/BUSI
-train_folder: train_folder
-val_folder: val_folder
-test_folder: test_folder
-
-
-data_root_dn: ../data/dynamicnuclear
-train_folder_dn: train
-val_folder_dn:   val
-test_folder_dn:  test
-
-
-
-
-data_root_dn: ../data/dynamicnuclear
-train_folder_dn: train
-val_folder_dn:   val
-test_folder_dn:  test
-
-
+datasets:
+  BUSI:
+    data_root: ../data/Hi-gMISnet_all_dataset/BUSI
+    train_folder: train_folder
+    val_folder: val_folder
+    test_folder: test_folder
+  DynamicNuclear:
+    data_root: ../data/dynamicnuclear
+    train_folder: train
+    val_folder:   val
+    test_folder:  test
 
 model_name: UNetConcat
 
 training:
-  results_path: ../results/BUSI/train
   batch_size:
     train: 1
     eval: 1
@@ -33,6 +22,5 @@ training:
   early_stopping_patience: 5
 
 testing:
-  results_path: ../results/BUSI/test
   batch_size: 4
   num_classes: 2

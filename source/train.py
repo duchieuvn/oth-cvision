@@ -11,12 +11,13 @@ import utils
 from models import UNetConcat, MonaiUnet, BasicUNetPlusPlus, UNetSum
 
 def train(model_name, config):
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    DATASET_CLASS_ROOT = config['data_root']
-    DATASET_CLASS_TRAIN = config['train_folder']
-    DATASET_CLASS_VAL = config['val_folder']
+    DATASET_NAME = 'BUSI'
+    datasets_cfg = config['datasets']['DATASET_NAME']
+    DATASET_ROOT = datasets_cfg['dataset_root']
+    DATASET_TRAIN = datasets_cfg['train_folder']
+    DATASET_VAL = datasets_cfg['val_folder']
 
     train_cfg = config['training']
     NUM_EPOCHS = train_cfg['num_epochs']
@@ -30,12 +31,12 @@ def train(model_name, config):
     # OUTPUT PATHS
     result_path = Path(RESULT_PATH)
     result_path.mkdir(parents=True, exist_ok=True)
-    model_path = result_path / '{model_name}_best_model.pth'
+    model_path = result_path / '{model_name}_{DATASET_NAME}_best_model.pth'
     metrics_path = result_path / '{model_name}_metrics.json'
 
     # DATASETS
-    train_data = utils.BUSIDataset(root=DATASET_CLASS_ROOT, subset=DATASET_CLASS_TRAIN)
-    val_data = utils.BUSIDataset(root=DATASET_CLASS_ROOT, subset=DATASET_CLASS_VAL)
+    train_data = utils.BUSIDataset(root=DATASET_ROOT, subset=DATASET_TRAIN)
+    val_data = utils.BUSIDataset(root=DATASET_ROOT, subset=DATASET_VAL)
 
     # train_data = utils.DynamicNucDataset("train", size=256)
     # val_data   = utils.DynamicNucDataset("val",   size=256)
@@ -47,21 +48,15 @@ def train(model_name, config):
     model = UNetConcat(out_channels=NUM_CLASSES).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-
     if model_name == 'unet_sum':
         model = UNetSum(out_channels=NUM_CLASSES).to(device)
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    elif model_name == 'unet_concat':
-        model = UNetConcat(out_channels=NUM_CLASSES).to(device)
-        criterion = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-        
+    
     # early stopping 
     best_loss = float('inf')
     early_stopping_count = 0
     metrics_records = []
-
 
     # TRAINING LOOP
     for epoch in range(NUM_EPOCHS):
@@ -145,4 +140,5 @@ if __name__ == "__main__":
     with open('config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
-    train(config)
+    for model_name in ['unet_concat', 'unet_sum']:
+       train(model_name, config)

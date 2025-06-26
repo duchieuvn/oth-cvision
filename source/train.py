@@ -112,7 +112,7 @@ def train(model_name, config):
                 outputs = model(imgs)
 
                 dice_loss_masks = masks.unsqueeze(1)    
-                loss = criterion(outputs, masks)
+                loss = criterion(outputs, dice_loss_masks)
                 total_val_loss += loss.item()
                 total_val_iou += utils.compute_iou(outputs, masks, num_classes=NUM_CLASSES)
                 val_batches += 1

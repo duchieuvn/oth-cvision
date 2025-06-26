@@ -136,7 +136,7 @@ def train(model_name, dataset_name, config):
                 dice_loss_masks = masks.unsqueeze(1)    
                 loss = criterion(outputs, dice_loss_masks)
 
-                loss = sum(criterion(out, masks) for out, weight in zip(outputs, )) / len(outputs)
+                loss = sum(criterion(out, masks) for out, weight in zip(outputs, deep_supervision_weights))
                 total_val_loss += loss.item()
                 total_val_iou += utils.compute_iou(outputs, masks, num_classes=NUM_CLASSES)
                 val_batches += 1

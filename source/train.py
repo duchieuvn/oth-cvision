@@ -86,9 +86,6 @@ def train(model_name, config):
             imgs, masks = imgs.to(device), masks.to(device)
             outputs = model(imgs)
 
-            print(f"Type of imgs: {type(imgs)}, shape: {imgs.shape}")
-            print(f"Type of masks: {type(masks)}, shape: {getattr(masks, 'shape', 'No shape')}")
-
             dice_loss_masks = masks.unsqueeze(1)
             loss = criterion(outputs, dice_loss_masks)
             optimizer.zero_grad()
@@ -114,6 +111,7 @@ def train(model_name, config):
                 imgs, masks = imgs.to(device), masks.to(device)
                 outputs = model(imgs)
 
+                dice_loss_masks = masks.unsqueeze(1)    
                 loss = criterion(outputs, masks)
                 total_val_loss += loss.item()
                 total_val_iou += utils.compute_iou(outputs, masks, num_classes=NUM_CLASSES)

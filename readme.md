@@ -38,6 +38,12 @@ tar -xvf VOCtrainval_11-May-2012.tar
 ``` 
 ls
 
+# Train on server  
+
+```
+nohup python train_unetpp.py > ../results/train_unetpp.log 2>&1 &
+```
+
 # Reference
 - Unet: https://arxiv.org/abs/1505.04597
 - Unet++: https://arxiv.org/abs/1807.10165

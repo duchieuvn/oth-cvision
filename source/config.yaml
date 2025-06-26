@@ -10,6 +10,7 @@ datasets:
     train_folder: train
     val_folder:   val
     test_folder:  test
+    num_classes: 2
 
 model_name: UNetConcat
 

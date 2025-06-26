@@ -119,7 +119,8 @@ def train(model_name, dataset_name, config):
             for imgs, masks, _ in val_loader:
                 imgs, masks = imgs.to(device), masks.to(device)
                 outputs = model(imgs)
-
+                outputs = outputs[0]
+                
                 dice_loss_masks = masks.unsqueeze(1)    
                 loss = criterion(outputs, dice_loss_masks)
                 total_val_loss += loss.item()

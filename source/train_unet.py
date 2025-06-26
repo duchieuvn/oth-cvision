@@ -7,7 +7,7 @@ from pathlib import Path
 from tqdm import tqdm
 import yaml
 from monai.losses import DiceLoss
-from models import UNetConcat, UNetSum, BasicUNetPlusPlus, BasicUNetPlusPlusSum
+from models import UNetConcat, UNetSum
 from datetime import datetime
 import utils
 import dataset as ds

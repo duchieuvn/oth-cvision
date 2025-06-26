@@ -7,7 +7,7 @@ from pathlib import Path
 from tqdm import tqdm
 import yaml
 from monai.losses import DiceLoss
-from models import UNetConcat, UNetSum, BasicUNetPlusPlus, BasicUNetPlusPlusSum
+from models import BasicUNetPlusPlus, BasicUNetPlusPlusSum
 from datetime import datetime
 import utils
 import dataset as ds
@@ -120,7 +120,7 @@ def train(model_name, dataset_name, config):
                 imgs, masks = imgs.to(device), masks.to(device)
                 outputs = model(imgs)
                 outputs = outputs[0]
-                
+
                 dice_loss_masks = masks.unsqueeze(1)    
                 loss = criterion(outputs, dice_loss_masks)
                 total_val_loss += loss.item()

@@ -60,10 +60,6 @@ def train(model_name, config):
         model = UNetSum(out_channels=NUM_CLASSES).to(device)
     elif model_name == 'unet_concat':
         model = UNetConcat(out_channels=NUM_CLASSES).to(device)
-    elif model_name == 'unetpp_concat':
-        model = BasicUNetPlusPlus(spatial_dims=2, in_channels=3, out_channels=NUM_CLASSES).to(device)
-    elif model_name == 'unetpp_sum':
-        model = BasicUNetPlusPlusSum(spatial_dims=2, in_channels=3, out_channels=NUM_CLASSES).to(device)
     else:
         raise ValueError(f"Unknown model name: {model_name}")
 
@@ -159,5 +155,5 @@ if __name__ == "__main__":
     with open('config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
-    for model_name in ['unetpp_concat', 'unet_sum']:
+    for model_name in ['unet_concat', 'unet_sum']:
         train(model_name, config)

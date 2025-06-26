@@ -139,6 +139,50 @@ class Covid19RadioDataset(torch.utils.data.Dataset):
         return img, mask, self.images[idx].stem
 
 
+def cityscapes_transform(img, mask, size=(224, 224)):
+    transform_img = transforms.Compose([
+        transforms.Resize(size),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                             std=[0.229, 0.224, 0.225])
+    ])
+    
+    # Resize mask using NEAREST to preserve class IDs
+    mask = mask.resize(size, resample=Image.NEAREST)
+    mask = torch.as_tensor(np.array(mask), dtype=torch.long)
+    
+    return transform_img(img), mask
+
+
+
+class CityscapesDataset(torch.utils.data.Dataset):
+    def __init__(self, root, subset='train', size=(224, 224)):
+        self.images = []
+        self.masks = []
+        self.size = size
+
+        img_root = Path(root) / 'leftImg8bit_trainvaltest'/ 'leftImg8bit' / subset
+        mask_root = Path(root) / 'gtFine_trainvaltest' / 'gtFine' / subset
+
+        for city in img_root.iterdir():
+            for img_path in city.glob("*_leftImg8bit.png"):
+                stem = img_path.stem.replace("_leftImg8bit", "")
+                label_path = mask_root / city.name / f"{stem}_gtFine_labelIds.png"
+                if label_path.exists():
+                    self.images.append(img_path)
+                    self.masks.append(label_path)
+                else:
+                    print(f"[Warning] Missing label for {img_path}")
+
+    def __len__(self):
+        return len(self.images)
+
+    def __getitem__(self, idx):
+        img = Image.open(self.images[idx]).convert('RGB')
+        mask = Image.open(self.masks[idx])
+        img, mask = cityscapes_transform(img, mask, size=self.size)
+        return img, mask, self.images[idx].stem
+
 def compute_iou(preds, masks, num_classes):  # nhớ sửa num_classes cho đúng model của bạn
     ious = []
     preds = torch.argmax(preds, dim=1)

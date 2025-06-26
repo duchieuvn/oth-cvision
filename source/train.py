@@ -159,5 +159,5 @@ if __name__ == "__main__":
     with open('config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
-    for model_name in ['basic_unetpp', 'unet_sum']:
+    for model_name in ['unetpp_concat', 'unet_sum']:
         train(model_name, config)

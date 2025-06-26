@@ -6,7 +6,7 @@ datasets:
     test_folder: test_folder
     num_classes: 2
   DynamicNuclear:
-    data_root: ../data/dynamicnuclear
+    data_root: ../data/DynamicNuclear
     train_folder: train
     val_folder:   val
     test_folder:  test

@@ -22,6 +22,19 @@ python export_medsegbench.py --out_root /home/3348/oth-cvision/data(replace wiht
 
 
 # Data
+
+1. Data should be place inside `data` folder
+
+Example:  
+```
+./    
+  source/    
+  data/   
+    BUSI/   
+    PASCAL/   
+  results/    
+```
+
 ```
 curl -L -o medical-image-segmentation-datasets-hi-gmisnet.zip\
   https://www.kaggle.com/api/v1/datasets/download/tushartalukder/medical-image-segmentation-datasets-hi-gmisnet
@@ -32,3 +45,7 @@ wget http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar
 tar -xvf VOCtrainval_11-May-2012.tar
 ``` 
 ls
+
+# Reference
+- Unet: https://arxiv.org/abs/1505.04597
+- Unet++: https://arxiv.org/abs/1807.10165

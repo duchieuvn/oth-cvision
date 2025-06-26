@@ -93,12 +93,10 @@ def train(model_name, dataset_name, config):
         for imgs, masks, _ in train_bar:
             imgs, masks = imgs.to(device), masks.to(device)
             outputs = model(imgs)
-            print('outputs len:', len(outputs))
+            outputs = outputs[0]
 
             dice_loss_masks = masks.unsqueeze(1)
-            dice_loss_outputs = outputs[0]
-            print('dice_loss_outputs len:', len(dice_loss_outputs))
-            loss = criterion(dice_loss_outputs, dice_loss_masks)
+            loss = criterion(outputs, dice_loss_masks)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()

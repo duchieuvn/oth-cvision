@@ -93,6 +93,7 @@ def train(model_name, dataset_name, config):
         for imgs, masks, _ in train_bar:
             imgs, masks = imgs.to(device), masks.to(device)
             outputs = model(imgs)
+            print('outputs len:', len(outputs))
 
             dice_loss_masks = masks.unsqueeze(1)
             dice_loss_outputs = torch.stack([out[0] for out in outputs], dim=0) # Only use when deep_supervision = False

@@ -11,8 +11,18 @@ datasets:
     val_folder:   val
     test_folder:  test
     num_classes: 2
-
-model_name: UNetConcat
+  UsForKidney:
+    data_root: ../data/UsForKidney
+    train_folder: train
+    val_folder:   val
+    test_folder:  test
+    num_classes: 2
+  Covid19Radio:
+    data_root: ../data/Covid19Radio
+    train_folder: train
+    val_folder:   val
+    test_folder:  test
+    num_classes: 2  
 
 training:
   batch_size:

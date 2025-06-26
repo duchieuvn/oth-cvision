@@ -89,7 +89,8 @@ def train(model_name, config):
             print(f"Type of imgs: {type(imgs)}, shape: {imgs.shape}")
             print(f"Type of masks: {type(masks)}, shape: {getattr(masks, 'shape', 'No shape')}")
 
-            loss = criterion(outputs, masks)
+            dice_loss_masks = masks.unsqueeze(1)
+            loss = criterion(outputs, dice_loss_masks)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()

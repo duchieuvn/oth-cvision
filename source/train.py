@@ -11,23 +11,37 @@ import utils
 from models import UNetConcat, MonaiUnet, BasicUNetPlusPlus, UNetSum
 from datetime import datetime
 
+def get_train_dataloaders(dataset_name, config):
+    dataset_cfg = config['datasets'][dataset_name]
+    DATASET_ROOT = dataset_cfg['data_root']
+    DATASET_TRAIN = dataset_cfg['train_folder']
+    DATASET_VAL = dataset_cfg['val_folder']
+
+    train_cfg = config['training']
+    TRAIN_BATCH_SIZE = train_cfg['batch_size']['train']
+    VAL_BATCH_SIZE = train_cfg['batch_size']['val']
+
+    # DATASETS
+    train_data = utils.BUSIDataset(root=DATASET_ROOT, subset=DATASET_TRAIN)
+    val_data = utils.BUSIDataset(root=DATASET_ROOT, subset=DATASET_VAL)
+
+    train_loader = DataLoader(train_data, batch_size=TRAIN_BATCH_SIZE, shuffle=True)
+    val_loader = DataLoader(val_data, batch_size=VAL_BATCH_SIZE, shuffle=False)
+
+    return train_loader, val_loader
+
 def train(model_name, config):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     DATASET_NAME = 'BUSI'
     busi_cfg = config['datasets'][DATASET_NAME]
-    DATASET_ROOT = busi_cfg['data_root']
-    DATASET_TRAIN = busi_cfg['train_folder']
-    DATASET_VAL = busi_cfg['val_folder']
     NUM_CLASSES = busi_cfg['num_classes']
 
+    timestamp = int(datetime.now().strftime("date-%d%m%-%H%M%S"))
     train_cfg = config['training']
     NUM_EPOCHS = train_cfg['num_epochs']
     LEARNING_RATE = train_cfg['learning_rate']
-    timestamp = int(datetime.now().strftime("date-%d%m%-%H%M%S"))
     RESULT_PATH = f'../results/train/{timestamp}/{DATASET_NAME}'
-    TRAIN_BATCH_SIZE = train_cfg['batch_size']['train']
-    VAL_BATCH_SIZE = train_cfg['batch_size']['val']
     EARLY_STOP_PATIENCE = train_cfg['early_stopping_patience']
     
     # OUTPUT PATHS
@@ -37,14 +51,7 @@ def train(model_name, config):
     metrics_path = result_path / f'{model_name}_metrics.json'
 
     # DATASETS
-    train_data = utils.BUSIDataset(root=DATASET_ROOT, subset=DATASET_TRAIN)
-    val_data = utils.BUSIDataset(root=DATASET_ROOT, subset=DATASET_VAL)
-
-    # train_data = utils.DynamicNucDataset("train", size=256)
-    # val_data   = utils.DynamicNucDataset("val",   size=256)
-
-    train_loader = DataLoader(train_data, batch_size=TRAIN_BATCH_SIZE, shuffle=True)
-    val_loader = DataLoader(val_data, batch_size=VAL_BATCH_SIZE, shuffle=False)
+    train_loader, val_loader = get_train_dataloaders(DATASET_NAME, config)
 
     # MODEL & TRAINING CONFIGURATION
     model = UNetConcat(out_channels=NUM_CLASSES).to(device)

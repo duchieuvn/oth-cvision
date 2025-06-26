@@ -7,9 +7,10 @@ from pathlib import Path
 from tqdm import tqdm
 import yaml
 from monai.losses import DiceLoss
-from models import UNetConcat, MonaiUnet, BasicUNetPlusPlus, UNetSum
+from models import UNetConcat, UNetSum, BasicUNetPlusPlus, BasicUNetPlusPlusSum
 from datetime import datetime
 import utils
+import dataset as ds
 
 
 def get_train_dataloaders(dataset_name, config):
@@ -23,8 +24,8 @@ def get_train_dataloaders(dataset_name, config):
     VAL_BATCH_SIZE = train_cfg['batch_size']['val']
 
     # DATASETS
-    train_data = utils.BUSIDataset(root=DATASET_ROOT, subset=DATASET_TRAIN)
-    val_data = utils.BUSIDataset(root=DATASET_ROOT, subset=DATASET_VAL)
+    train_data = ds.DynamicNucDataset(root=DATASET_ROOT, subset=DATASET_TRAIN)
+    val_data = ds.DynamicNucDataset(root=DATASET_ROOT, subset=DATASET_VAL)
 
     train_loader = DataLoader(train_data, batch_size=TRAIN_BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_data, batch_size=VAL_BATCH_SIZE, shuffle=False)
@@ -34,7 +35,7 @@ def get_train_dataloaders(dataset_name, config):
 def train(model_name, config):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    DATASET_NAME = 'BUSI'
+    DATASET_NAME = 'DynamicNuclear'
     busi_cfg = config['datasets'][DATASET_NAME]
     NUM_CLASSES = busi_cfg['num_classes']
 
@@ -59,8 +60,10 @@ def train(model_name, config):
         model = UNetSum(out_channels=NUM_CLASSES).to(device)
     elif model_name == 'unet_concat':
         model = UNetConcat(out_channels=NUM_CLASSES).to(device)
-    elif model_name == 'basic_unetpp':
+    elif model_name == 'unetpp_concat':
         model = BasicUNetPlusPlus(spatial_dims=2, in_channels=3, out_channels=NUM_CLASSES).to(device)
+    elif model_name == 'unetpp_sum':
+        model = BasicUNetPlusPlusSum(spatial_dims=2, in_channels=3, out_channels=NUM_CLASSES).to(device)
     else:
         raise ValueError(f"Unknown model name: {model_name}")
 
@@ -148,13 +151,13 @@ def train(model_name, config):
     with open(metrics_path, 'w') as f:
         json.dump(metrics_records, f, indent=2)
 
-    print("✅ Training complete!")
-    print(f"📦 Model and metrics saved in {RESULT_PATH}")
+    print("Training complete!")
+    print(f"Model and metrics saved in {RESULT_PATH}")
 
 
 if __name__ == "__main__":
     with open('config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
-    for model_name in ['unet_concat', 'unet_sum']:
+    for model_name in ['basic_unetpp', 'unet_sum']:
         train(model_name, config)

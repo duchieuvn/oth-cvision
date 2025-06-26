@@ -1,15 +1,16 @@
-import torch.nn as nn
+import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
-import torch
 import time
 import json
 from pathlib import Path
 from tqdm import tqdm
 import yaml
-import utils
+from monai.losses import DiceLoss
 from models import UNetConcat, MonaiUnet, BasicUNetPlusPlus, UNetSum
 from datetime import datetime
+import utils
+
 
 def get_train_dataloaders(dataset_name, config):
     dataset_cfg = config['datasets'][dataset_name]
@@ -53,22 +54,27 @@ def train(model_name, config):
     # DATASETS
     train_loader, val_loader = get_train_dataloaders(DATASET_NAME, config)
 
-    # MODEL & TRAINING CONFIGURATION
-    model = UNetConcat(out_channels=NUM_CLASSES).to(device)
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    # MODEL SELECTION
     if model_name == 'unet_sum':
         model = UNetSum(out_channels=NUM_CLASSES).to(device)
-        criterion = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    
-    # early stopping 
+    elif model_name == 'unet_concat':
+        model = UNetConcat(out_channels=NUM_CLASSES).to(device)
+    elif model_name == 'basic_unetpp':
+        model = BasicUNetPlusPlus(spatial_dims=2, in_channels=3, out_channels=NUM_CLASSES).to(device)
+    else:
+        raise ValueError(f"Unknown model name: {model_name}")
+
+    # Loss & Optimizer
+    criterion = DiceLoss(to_onehot_y=True, softmax=True)
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+
+    # Early stopping & metrics tracking
     best_loss = float('inf')
     early_stopping_count = 0
     metrics_records = []
 
     # TRAINING LOOP
-    for epoch in range(NUM_EPOCHS):
+    for epoch in range(5):
         model.train()
         total_train_loss = 0
         total_train_iou = 0
@@ -79,6 +85,9 @@ def train(model_name, config):
         for imgs, masks, _ in train_bar:
             imgs, masks = imgs.to(device), masks.to(device)
             outputs = model(imgs)
+
+            print(f"Type of imgs: {type(imgs)}, shape: {imgs.shape}")
+            print(f"Type of masks: {type(masks)}, shape: {getattr(masks, 'shape', 'No shape')}")
 
             loss = criterion(outputs, masks)
             optimizer.zero_grad()
@@ -140,14 +149,13 @@ def train(model_name, config):
     with open(metrics_path, 'w') as f:
         json.dump(metrics_records, f, indent=2)
 
-    print(" Training complete!")
-    print(f"Model and metrics saved in {RESULT_PATH}")
+    print("✅ Training complete!")
+    print(f"📦 Model and metrics saved in {RESULT_PATH}")
+
 
 if __name__ == "__main__":
-
-    # Load config.yaml
     with open('config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
     for model_name in ['unet_concat', 'unet_sum']:
-       train(model_name, config)
+        train(model_name, config)

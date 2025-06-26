@@ -129,7 +129,7 @@ def train(model_name, dataset_name, config):
         avg_val_iou = total_val_iou / val_batches
         epoch_time = time.time() - start_time
 
-        print(f"[{model_name} | {dataset_name} | Epoch {epoch+1}] Train Loss: {avg_train_loss:.4f}, Train IoU: {avg_train_iou:.4f} | "
+        print(f"[Epoch {epoch+1}] Train Loss: {avg_train_loss:.4f}, Train IoU: {avg_train_iou:.4f} | "
               f"Val Loss: {avg_val_loss:.4f}, Val IoU: {avg_val_iou:.4f} - Time: {epoch_time:.2f}s")
 
         if avg_val_loss < best_loss:
@@ -165,7 +165,7 @@ if __name__ == "__main__":
 
     model_names = ['unet_concat', 'unet_sum']  
     dataset_names = list(config['datasets'].keys())  
-    
+
     for dataset_name in dataset_names:
         for model_name in model_names:
             print(f"\n🚀 Starting training: {model_name} on {dataset_name}")

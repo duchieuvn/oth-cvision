@@ -37,18 +37,18 @@ def train(model_name, config):
     busi_cfg = config['datasets'][DATASET_NAME]
     NUM_CLASSES = busi_cfg['num_classes']
 
-    timestamp = int(datetime.now().strftime("%d%m%M%S"))
     train_cfg = config['training']
     NUM_EPOCHS = train_cfg['num_epochs']
     LEARNING_RATE = train_cfg['learning_rate']
-    RESULT_PATH = f'../results/train/time-{timestamp}/{DATASET_NAME}'
+    RESULT_PATH = f'../results/train/{DATASET_NAME}'
     EARLY_STOP_PATIENCE = train_cfg['early_stopping_patience']
     
     # OUTPUT PATHS
+    timestamp = int(datetime.now().strftime("%d%m%M%S"))
     result_path = Path(RESULT_PATH)
     result_path.mkdir(parents=True, exist_ok=True)
-    model_path = result_path / f'{model_name}_best_model.pth'
-    metrics_path = result_path / f'{model_name}_metrics.json'
+    model_path = result_path / f'{model_name}_best_model_{timestamp}.pth'
+    metrics_path = result_path / f'{model_name}_metrics_{timestamp}.json'
 
     # DATASETS
     train_loader, val_loader = get_train_dataloaders(DATASET_NAME, config)

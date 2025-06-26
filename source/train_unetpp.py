@@ -97,6 +97,7 @@ def train(model_name, dataset_name, config):
 
             dice_loss_masks = masks.unsqueeze(1)
             dice_loss_outputs = torch.stack([out[0] for out in outputs], dim=0) # Only use when deep_supervision = False
+            print('dice_loss_outputs len:', len(dice_loss_outputs))
             loss = criterion(dice_loss_outputs, dice_loss_masks)
             optimizer.zero_grad()
             loss.backward()

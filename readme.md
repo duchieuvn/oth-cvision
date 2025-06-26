@@ -11,6 +11,14 @@
     model_name_time_trained_epochs
 
 
+## commands for getting the medsegbench datasets
+1. get into tool folder (source code folder)
+/home/3348/oth-cvision/source/tool
+
+2. run command 
+python export_medsegbench.py --out_root /home/3348/oth-cvision/data(replace wiht your datafolder) --size 256
+
+
 
 
 # Data

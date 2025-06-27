@@ -113,7 +113,7 @@ def train(model_name, dataset_name, config):
             optimizer.step()
 
             total_train_loss += loss.item()
-            total_train_iou += utils.compute_iou(outputs, masks, num_classes=NUM_CLASSES)
+            total_train_iou += utils.compute_iou(outputs[-1], masks, num_classes=NUM_CLASSES)
             train_batches += 1
 
             train_bar.set_postfix(loss=loss.item())
@@ -136,7 +136,7 @@ def train(model_name, dataset_name, config):
 
                 loss = sum(criterion(out, masks) for out, weight in zip(outputs, deep_supervision_weights))
                 total_val_loss += loss.item()
-                total_val_iou += utils.compute_iou(outputs, masks, num_classes=NUM_CLASSES)
+                total_val_iou += utils.compute_iou(outputs[-1], masks, num_classes=NUM_CLASSES)
                 val_batches += 1
 
         avg_val_loss = total_val_loss / val_batches

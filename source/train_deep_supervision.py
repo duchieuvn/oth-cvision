@@ -104,7 +104,6 @@ def train(model_name, dataset_name, config):
         for imgs, masks, _ in train_bar:
             imgs, masks = imgs.to(device), masks.to(device)
             outputs = model(imgs)
-            outputs = outputs[0]
 
             dice_loss_masks = masks.unsqueeze(1)
             loss = sum(criterion(out, dice_loss_masks)*w for out, w in zip(outputs, deep_supervision_weights))
@@ -131,7 +130,6 @@ def train(model_name, dataset_name, config):
             for imgs, masks, _ in val_loader:
                 imgs, masks = imgs.to(device), masks.to(device)
                 outputs = model(imgs)
-                outputs = outputs[0]
 
                 dice_loss_masks = masks.unsqueeze(1)    
                 loss = criterion(outputs, dice_loss_masks)

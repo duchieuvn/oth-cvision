@@ -66,14 +66,14 @@ def train(model_name, dataset_name, config):
     train_loader, val_loader = get_train_dataloaders(dataset_name, config)
 
     # MODEL SELECTION
-    if model_name == 'unetpp_concat':
+    if model_name == 'concat-dsupervision':
         model = BasicUNetPlusPlus(
                     spatial_dims=2, 
                     in_channels=3, 
                     out_channels=NUM_CLASSES, 
                     deep_supervision=True
                 ).to(device)
-    elif model_name == 'unetpp_sum':
+    elif model_name == 'sum-dsupervision':
         model = BasicUNetPlusPlusSum(
             spatial_dims=2, 
             in_channels=3, 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     with open('config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
-    model_names = ['unetpp_concat', 'unetpp_sum']  
+    model_names = ['concat-dsupervision', 'sum-dsupervision']  
     dataset_names = list(config['datasets'].keys())  
 
     for dataset_name in dataset_names:

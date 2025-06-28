@@ -66,14 +66,14 @@ def train(model_name, dataset_name, config):
     train_loader, val_loader = get_train_dataloaders(dataset_name, config)
 
     # MODEL SELECTION
-    if model_name == 'unetpp_concat':
+    if model_name == 'concat-dsupervision':
         model = BasicUNetPlusPlus(
                     spatial_dims=2, 
                     in_channels=3, 
                     out_channels=NUM_CLASSES, 
                     deep_supervision=True
                 ).to(device)
-    elif model_name == 'unetpp_sum':
+    elif model_name == 'sum-dsupervision':
         model = BasicUNetPlusPlusSum(
             spatial_dims=2, 
             in_channels=3, 
@@ -104,7 +104,6 @@ def train(model_name, dataset_name, config):
         for imgs, masks, _ in train_bar:
             imgs, masks = imgs.to(device), masks.to(device)
             outputs = model(imgs)
-            outputs = outputs[0]
 
             dice_loss_masks = masks.unsqueeze(1)
             loss = sum(criterion(out, dice_loss_masks)*w for out, w in zip(outputs, deep_supervision_weights))
@@ -114,7 +113,7 @@ def train(model_name, dataset_name, config):
             optimizer.step()
 
             total_train_loss += loss.item()
-            total_train_iou += utils.compute_iou(outputs, masks, num_classes=NUM_CLASSES)
+            total_train_iou += utils.compute_iou(outputs[-1], masks, num_classes=NUM_CLASSES)
             train_batches += 1
 
             train_bar.set_postfix(loss=loss.item())
@@ -131,14 +130,12 @@ def train(model_name, dataset_name, config):
             for imgs, masks, _ in val_loader:
                 imgs, masks = imgs.to(device), masks.to(device)
                 outputs = model(imgs)
-                outputs = outputs[0]
 
                 dice_loss_masks = masks.unsqueeze(1)    
-                loss = criterion(outputs, dice_loss_masks)
-
-                loss = sum(criterion(out, masks) for out, weight in zip(outputs, deep_supervision_weights))
+                loss = sum(criterion(out, dice_loss_masks)*w for out, w in zip(outputs, deep_supervision_weights))
+                
                 total_val_loss += loss.item()
-                total_val_iou += utils.compute_iou(outputs, masks, num_classes=NUM_CLASSES)
+                total_val_iou += utils.compute_iou(outputs[-1], masks, num_classes=NUM_CLASSES)
                 val_batches += 1
 
         avg_val_loss = total_val_loss / val_batches
@@ -179,7 +176,7 @@ if __name__ == "__main__":
     with open('config.yaml', 'r') as f:
         config = yaml.safe_load(f)
 
-    model_names = ['unetpp_concat', 'unetpp_sum']  
+    model_names = ['concat-dsupervision', 'sum-dsupervision']  
     dataset_names = list(config['datasets'].keys())  
 
     for dataset_name in dataset_names:

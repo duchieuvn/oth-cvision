@@ -95,14 +95,13 @@ nohup python train_unetpp.py > ../results/train_unetpp.log 2>&1 &
 ```
 
 ### Inference 
-
-GUO INSERT HERE
-...
+Example images predictions from each dataset and each model
+![Model Summary](model_predictions_summary.png)
 
 ## Contributors
 | Student name        | Code   | Email              |
 |---------------------|--------|--------------------|
-| Xusheng Guo         |        |                    |
+| Xusheng Guo         | 3348   | x.guo@oth-aw.de    |
 | Tran Thai Duc Hieu  | 8f95   | t.tran@oth-aw.de   |
 
 This project is owned by the team, **please do not copy**. 

@@ -95,6 +95,23 @@ nohup python train_unetpp.py > ../results/train_unetpp.log 2>&1 &
 ```
 
 ### Inference 
+
+
+Inference UNet and UNet Summation:
+```
+python evaluate_unet.py
+```
+
+Inference UNet++ and UNet++ Summation without deep supervision:
+```
+python evaluate_unetpp.py
+```
+
+Inference UNet++ and UNet++ Summation with deep supervision:
+```
+python evaluate_deep_supervision.py
+```
+
 Example images predictions from each dataset and each model
 ![Model Summary](model_predictions_summary.png)
 

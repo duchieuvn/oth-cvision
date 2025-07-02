@@ -1,57 +1,112 @@
 
-## code package and its contents
-1. dataset folder - including all the selected datasets
+# 
+<div id="top"></div>
+<h3 align="center">CONCATENATION AND SUMMATION OPERATION IN UNET AND UNET++</h3>
+</div>
 
-2. src folder - including the 
-    training script, 
-    utils
-    different models here
+## About the project
 
-3. trained model weights
-    model_name_time_trained_epochs
+In this experiment, we explore an alternative method called element-wise summation, which adds the feature maps together instead of joining them. We compare how concatenation and summation affect the performance of UNet and UNet++, and see if summation can make the models simpler while still keeping good segmentation results.
 
 
-## commands for getting the medsegbench datasets
-1. get into tool folder (source code folder)
-/home/3348/oth-cvision/source/tool
+## Repo structure
 
-2. run command 
-python export_medsegbench.py --out_root /home/3348/oth-cvision/data(replace wiht your datafolder) --size 256
+- ***source:***  
+All source code of the project
+
+- ***source/tool:***  
+Scripts to prepare/preprocess datasets
+
+- ***results:***   
+Best models and evaluation metrics from training process for each dataset
+
+- ***nb:***  
+Notebooks created during the development phase of the project
 
 
 
+## Usuage
+### Prepare data
+1. Download Hi-gMISnet all dataset from Kaggle for BUSI dataset:
 
-# Data
-
-1. Data should be place inside `data` folder
-
-Example:  
+Go into `data` folder, run this command:
 ```
-./    
-  source/    
-  data/   
-    BUSI/   
-    PASCAL/   
-  results/    
+curl -L -o medical-image-segmentation-datasets-hi-gmisnet.zip https://www.kaggle.com/api/v1/datasets/download/tushartalukder/medical-image-segmentation-datasets-hi-gmisnet
+
+unzip medical-image-segmentation-datasets-hi-gmisnet.zip
 ```
 
-```
-curl -L -o medical-image-segmentation-datasets-hi-gmisnet.zip\
-  https://www.kaggle.com/api/v1/datasets/download/tushartalukder/medical-image-segmentation-datasets-hi-gmisnet
-```  
-```
-wget http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar  
+2. Download and prepare other datasets:
 
-tar -xvf VOCtrainval_11-May-2012.tar
-``` 
-ls
+Go into `source/tool`, run file `export_medsegbench.py`:
+```
+python export_medsegbench.py --out_root ../../data --size 256
+```
 
-# Train on server  
+3. The data folder should look like this:
+
+```text
+data
+    Hi-gMISnet_all_dataset
+        BUSI
+            train_folder
+            val_folder
+            test_folder
+        ...
+        ...
+
+    DynamicNuclear
+        train
+        val
+        test
+    UsForKidney
+        train
+        val
+        test
+    Covid19Radio
+        train
+        val
+        test
+```
+
+### Train
+
+Go to `source` folder:
+
+Train UNet and UNet Summation:
+```
+python train_unet.py
+```
+
+Train UNet++ and UNet++ Summation without deep supervision:
+```
+python train_unetpp.py
+```
+
+Train UNet++ and UNet++ Summation with deep supervision:
+```
+python train_deep_supervision.py
+```
+
+Example to train on school GPU Server
 
 ```
 nohup python train_unetpp.py > ../results/train_unetpp.log 2>&1 &
 ```
 
-# Reference
-- Unet: https://arxiv.org/abs/1505.04597
-- Unet++: https://arxiv.org/abs/1807.10165
+### Inference 
+
+GUO INSERT HERE
+...
+
+## Contributors
+| Student name        | Code   | Email              |
+|---------------------|--------|--------------------|
+| Xusheng Guo         |        |                    |
+| Tran Thai Duc Hieu  | 8f95   | t.tran@oth-aw.de   |
+
+This project is owned by the team, **please do not copy**. 
+
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+

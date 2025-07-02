@@ -1,18 +1,12 @@
 
 # 
 <div id="top"></div>
-<h3 align="center">WORLD COVID DATA VISUALIZATION</h3>
+<h3 align="center">CONCATENATION AND SUMMATION OPERATION IN UNET AND UNET++</h3>
 </div>
 
 ## About the project
 
-A project to visualize World Covid data - collected from this website: [Corona virus - WorldOMeter](https://www.worldometers.info/coronavirus)
-
-Including:
-* Web scraping 
-* Data preprocessing
-* Data visualizing
-* Data analysing
+In this experiment, we explore an alternative method called element-wise summation, which adds the feature maps together instead of joining them. We compare how concatenation and summation affect the performance of UNet and UNet++, and see if summation can make the models simpler while still keeping good segmentation results.
 
 
 ## Repo structure
@@ -102,6 +96,8 @@ nohup python train_unetpp.py > ../results/train_unetpp.log 2>&1 &
 
 ### Inference 
 
+GUO INSERT HERE
+...
 
 ## Contributors
 | Student name        | Code   | Email              |

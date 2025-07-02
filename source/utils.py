@@ -1,81 +1,9 @@
-from torchvision.datasets import VOCSegmentation
-from medsegbench import DynamicNuclearMSBench
-from torchvision import transforms
 import torch
 from pathlib import Path
-from PIL import Image
 import numpy as np
-from sklearn.metrics import confusion_matrix    # pip install scikit-learn
+from sklearn.metrics import confusion_matrix    
 
-
-def binary_class_data_transform(img, mask, model_input_size=(224, 224)):
-    img = img.resize(model_input_size)
-    mask = mask.resize(model_input_size, resample=Image.NEAREST)
-    img = transforms.ToTensor()(img)
-    mask = torch.as_tensor(np.array(mask), dtype=torch.long)
-    return img, mask
-
-class VOCSegmentationDataset(torch.utils.data.Dataset):
-    def __init__(self, root, image_set='train', year='2012'):
-        self.dataset = VOCSegmentation(
-            root=root,
-            image_set=image_set,
-            year=year,
-            download=False
-        )
-
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, idx):
-        img, mask = self.dataset[idx]
-        return self.data_transform(img, mask)
-    
-class BUSIDataset(torch.utils.data.Dataset):
-    def __init__(self, root, subset='train_folder'):
-        self.images = []
-        self.masks = []
-        self.transform = binary_class_data_transform
-
-        img_path = Path(root) / subset / 'img'
-        for filename in sorted(img_path.glob("*.png")):
-            self.images.append(filename)
-
-        mask_path = Path(root) / subset / 'label'
-        for filename in sorted(mask_path.glob("*.png")):
-            self.masks.append(filename)
-
-    def __len__(self):
-        return len(self.images)
-
-    def __getitem__(self, idx):
-        img_path = self.images[idx]
-        mask_path = self.masks[idx]
-       
-        img = Image.open(img_path).convert('RGB')
-        mask = Image.open(mask_path).convert('L')  # Grayscale mask
-        img, mask = self.transform(img, mask)
-        
-        # Convert to binary mask: 0 for background, 1 for lesion
-        mask = (mask > 0).long()
-        return img, mask, img_path.stem  # Return image name for reference 
-
-class DynamicNucDataset(torch.utils.data.Dataset):
-    def __init__(self, split="train", size=256):
-        self.ds = DynamicNuclearMSBench(split=split, size=size, download=True)
-
-    def __len__(self):
-        return len(self.ds)
-
-    def __getitem__(self, idx):
-        img_pil, mask_np = self.ds[idx]
-        img = torch.from_numpy(np.array(img_pil)[None]).float() / 255.      # (1,H,W)
-        img = img.repeat(3, 1, 1)                                           # (3,H,W)
-        mask = torch.from_numpy((mask_np > 0).astype(np.int64))             # (H,W)
-        return img, mask
-
-
-def compute_iou(preds, masks, num_classes):  # nhớ sửa num_classes cho đúng model của bạn
+def compute_iou(preds, masks, num_classes): 
     ious = []
     preds = torch.argmax(preds, dim=1)
     for cls in range(num_classes):

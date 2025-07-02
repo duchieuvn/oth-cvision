@@ -11,6 +11,14 @@
     model_name_time_trained_epochs
 
 
+## commands for getting the medsegbench datasets
+1. get into tool folder (source code folder)
+/home/3348/oth-cvision/source/tool
+
+2. run command 
+python export_medsegbench.py --out_root /home/3348/oth-cvision/data(replace wiht your datafolder) --size 256
+
+
 
 
 # Data
@@ -37,6 +45,12 @@ wget http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar
 tar -xvf VOCtrainval_11-May-2012.tar
 ``` 
 ls
+
+# Train on server  
+
+```
+nohup python train_unetpp.py > ../results/train_unetpp.log 2>&1 &
+```
 
 # Reference
 - Unet: https://arxiv.org/abs/1505.04597

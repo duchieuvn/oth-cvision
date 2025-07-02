@@ -217,6 +217,7 @@ class UpSum(nn.Module):
         skip = self.align_skip(skip)
         x = x + skip
         return self.conv(x)
+
 class BasicUNetPlusPlusSum(nn.Module):
     def __init__(self,
                  spatial_dims: int = 3,

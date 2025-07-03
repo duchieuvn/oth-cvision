@@ -8,6 +8,7 @@ from monai.networks.layers.factories import Conv
 from monai.networks.nets.basic_unet import Down, TwoConv, UpSample
 from monai.utils import ensure_tuple_rep
 
+## reference from Deep Vision lecture slides (prof. Ivanovska)
 class UNetConcat(nn.Module):
     def __init__(self, in_channels=3, out_channels=1, init_features=32):
         super(UNetConcat, self).__init__()

@@ -8,6 +8,16 @@
 
 In this experiment, we explore an alternative method called element-wise summation, which adds the feature maps together instead of joining them. We compare how concatenation and summation affect the performance of UNet and UNet++, and see if summation can make the models simpler while still keeping good segmentation results.
 
+## Coding reference
+<!-- Guo -->
+* https://chatgpt.com/share/686631e5-c9a0-8011-a4c1-e0d49051c66e
+* https://chatgpt.com/share/6866322d-41a4-8011-810f-942f813b7e5c
+* https://chatgpt.com/share/6866327d-ad1c-8011-817e-a8942464c770
+* https://chatgpt.com/share/686632b9-4e48-8011-9a63-d67191a5a964
+<!-- Hieu  -->
+* https://chatgpt.com/share/6866538c-ad50-8013-877b-3d1b6728e326
+* https://chatgpt.com/share/68665360-ba34-8013-8136-aa3aaaa57638
+
 
 ## Repo structure
 
@@ -115,13 +125,6 @@ python evaluate_deep_supervision.py
 
 Example images predictions from each dataset and each model
 ![Model Summary](model_predictions_summary.png)
-
-
-## Coding reference
-* https://chatgpt.com/share/686631e5-c9a0-8011-a4c1-e0d49051c66e
-* https://chatgpt.com/share/6866322d-41a4-8011-810f-942f813b7e5c
-* https://chatgpt.com/share/6866327d-ad1c-8011-817e-a8942464c770
-* https://chatgpt.com/share/686632b9-4e48-8011-9a63-d67191a5a964
 
 ## Contributors
 | Student name        | Code   | Email              |

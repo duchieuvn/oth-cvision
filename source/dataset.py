@@ -1,5 +1,3 @@
-from torchvision.datasets import VOCSegmentation
-from medsegbench import DynamicNuclearMSBench
 from torchvision import transforms
 import torch
 from pathlib import Path
@@ -13,22 +11,6 @@ def binary_class_data_transform(img, mask, model_input_size=(224, 224)):
     mask = torch.as_tensor(np.array(mask), dtype=torch.long)
     return img, mask
 
-class VOCSegmentationDataset(torch.utils.data.Dataset):
-    def __init__(self, root, image_set='train', year='2012'):
-        self.dataset = VOCSegmentation(
-            root=root,
-            image_set=image_set,
-            year=year,
-            download=False
-        )
-
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, idx):
-        img, mask = self.dataset[idx]
-        return self.data_transform(img, mask)
-    
 class BUSIDataset(torch.utils.data.Dataset):
     def __init__(self, root, subset='train_folder'):
         self.images = []

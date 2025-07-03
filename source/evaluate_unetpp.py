@@ -82,14 +82,21 @@ def evaluate(model, test_loader, criterion, device, result_path, model_tag, num_
                 Image.fromarray(pred_mask * (255 // (num_classes - 1))).save(out_path)
 
     n = len(test_loader)
+    TP = cm.diagonal()
+    FP = cm.sum(0) - TP
+    FN = cm.sum(1) - TP
+    denom = TP + FP + FN
+    iou_per_class = (TP / denom.clamp(min=1)).tolist()
+
     metrics = {
         "loss": total_loss / n,
         "mean_iou": total_iou / n,
         "mean_dice": total_dice / n,
         "pixel_acc": total_correct / total_px,
         "conf_matrix": cm.tolist(),
-        "iou_per_cls": (cm.diagonal() / cm.sum(1).clamp(min=1)).tolist()
+        "iou_per_cls": iou_per_class
     }
+
 
     with open(result_path / f'{model_tag}_test_metrics.json', 'w') as f:
         json.dump(convert_to_correct_type(metrics), f, indent=2)

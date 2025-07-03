@@ -116,6 +116,13 @@ python evaluate_deep_supervision.py
 Example images predictions from each dataset and each model
 ![Model Summary](model_predictions_summary.png)
 
+
+## Coding reference
+https://chatgpt.com/share/686631e5-c9a0-8011-a4c1-e0d49051c66e
+https://chatgpt.com/share/6866322d-41a4-8011-810f-942f813b7e5c
+https://chatgpt.com/share/6866327d-ad1c-8011-817e-a8942464c770
+https://chatgpt.com/share/686632b9-4e48-8011-9a63-d67191a5a964
+
 ## Contributors
 | Student name        | Code   | Email              |
 |---------------------|--------|--------------------|
@@ -123,6 +130,7 @@ Example images predictions from each dataset and each model
 | Tran Thai Duc Hieu  | 8f95   | t.tran@oth-aw.de   |
 
 This project is owned by the team, **please do not copy**. 
+
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 

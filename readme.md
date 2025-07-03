@@ -23,7 +23,8 @@ Best models and evaluation metrics from training process for each dataset
 - ***nb:***  
 Notebooks created during the development phase of the project
 
-
+## Trained models
+https://git.oth-aw.de/3348/deep_vision_models
 
 ## Usuage
 ### Prepare data
